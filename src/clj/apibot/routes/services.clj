@@ -1,7 +1,35 @@
 (ns apibot.routes.services
-  (:require [ring.util.http-response :refer :all]
-            [compojure.api.sweet :refer :all]
-            [schema.core :as s]))
+  (:require
+    [apibot.db.core :as db]
+    [compojure.api.sweet :refer :all]
+    [ring.util.http-response :refer :all]
+    [schema.core :as s]))
+
+(s/defschema User
+  {:id (s/maybe s/Str)
+   :email s/Str})
+
+(s/defschema Edge
+  {:source s/Str
+   :target s/Str
+   :id s/Str})
+
+(s/defschema Node
+  {:id s/Str
+   :graph-id s/Str
+   :name s/Str
+   :position {:x Double :y Double}
+   :props s/Any
+   :type s/Str})
+
+(s/defschema Graph
+  {(s/optional-key :id) (s/maybe s/Str)
+   :user-id s/Str
+   :desc s/Str
+   :edges [Edge]
+   :executable s/Str
+   :nodes [Node]
+   :name s/Str})
 
 (defapi service-routes
   {:swagger {:ui "/swagger-ui"
@@ -9,36 +37,29 @@
              :data {:info {:version "1.0.0"
                            :title "Sample API"
                            :description "Sample Services"}}}}
-  
-  (context "/api" []
-    :tags ["thingie"]
 
-    (GET "/plus" []
-      :return       Long
-      :query-params [x :- Long, {y :- Long 1}]
-      :summary      "x+y with query-parameters. y defaults to 1."
-      (ok (+ x y)))
+  (context "/api/1" []
+    :tags ["API v1"]
 
-    (POST "/minus" []
-      :return      Long
-      :body-params [x :- Long, y :- Long]
-      :summary     "x-y with body-parameters."
-      (ok (- x y)))
 
-    (GET "/times/:x/:y" []
-      :return      Long
-      :path-params [x :- Long, y :- Long]
-      :summary     "x*y with path-parameters"
-      (ok (* x y)))
+    (POST "/users" []
+      :return      User
+      :body-params [user :- User]
+      :summary     "Creates a new user"
+      (ok nil))
 
-    (POST "/divide" []
-      :return      Double
-      :form-params [x :- Long, y :- Long]
-      :summary     "x/y with form-parameters"
-      (ok (/ x y)))
+    (context "/users/me" []
+      :tags ["The users API"]
 
-    (GET "/power" []
-      :return      Long
-      :header-params [x :- Long, y :- Long]
-      :summary     "x^y with header-parameters"
-      (ok (long (Math/pow x y))))))
+      (GET "/graphs" []
+        :return      {:graphs [Graph]}
+        :summary     "Returns all the graphs that belong to the current user."
+        (let [user-id "fernandohur"]
+          (ok {:graphs (db/find-graphs-by-user-id user-id)})))
+
+      (PUT "/graphs" []
+        :return      {:graphs [Graph]}
+        :body-params [graphs :- [Graph]]
+        :summary     "Sets a user's graphs"
+        (let [user-id "fernandohur"]
+          (ok {:graphs (db/set-graphs-by-user-id user-id graphs)}))))))
