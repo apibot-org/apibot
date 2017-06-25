@@ -10,3 +10,6 @@ profiles.clj
 /.env
 .nrepl-port
 /log
+
+apibot.iml
+.idea/
