@@ -1,7 +1,7 @@
 (defproject apibot "0.1.0-SNAPSHOT"
 
-  :description "FIXME: write description"
-  :url "http://example.com/FIXME"
+  :description "The apibot server"
+  :url "https://apibot.co"
 
   :dependencies [[clj-time "0.13.0"]
                  [cljs-ajax "0.6.0"]
@@ -122,8 +122,8 @@
                      {:output-to "target/test.js"
                       :main "apibot.doo-runner"
                       :optimizations :whitespace
-                      :pretty-print true}}}}
-                  
-                  }
+                      :pretty-print true}}}}}
+
+
    :profiles/dev {}
    :profiles/test {}})

@@ -41,6 +41,9 @@
   (->> (mc/find-maps db "graphs" {:user-id user-id})
        (map deserialize-graph)))
 
+(defn purge-graphs []
+  (mc/purge-many db ["graphs"]))
+
 (defn set-graphs-by-user-id [user-id graphs]
   (->> (map serialize-graph graphs)
        (map (fn [graph]

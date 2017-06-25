@@ -2,8 +2,9 @@
   (:require
     [apibot.db.core :as db]
     [compojure.api.sweet :refer :all]
-    [ring.util.http-response :refer :all]
-    [schema.core :as s]))
+    [ring.util.http-response :as response :refer :all]
+    [schema.core :as s]
+    [clojure.tools.logging :as log]))
 
 (s/defschema User
   {:id (s/maybe s/Str)
@@ -39,8 +40,11 @@
                            :description "Sample Services"}}}}
 
   (context "/api/1" []
-    :tags ["API v1"]
+    :tags ["Root"]
 
+    (DELETE "/purge" []
+      :summary     "purges the database"
+      (ok (db/purge-graphs)))
 
     (POST "/users" []
       :return      User
@@ -49,7 +53,7 @@
       (ok nil))
 
     (context "/users/me" []
-      :tags ["The users API"]
+      :tags ["Users"]
 
       (GET "/graphs" []
         :return      {:graphs [Graph]}
