@@ -9,6 +9,7 @@
                  [com.novemberain/monger "3.1.0" :exclusions [com.google.guava/guava]]
                  [compojure "1.6.0"]
                  [cprop "0.1.10"]
+                 [buddy "1.3.0"]
                  [funcool/struct "1.0.0"]
                  [luminus-immutant "0.2.3"]
                  [luminus-nrepl "0.1.4"]
