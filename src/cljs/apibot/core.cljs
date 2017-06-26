@@ -4,9 +4,7 @@
             [secretary.core :as secretary :include-macros true]
             [goog.events :as events]
             [goog.history.EventType :as HistoryEventType]
-            [markdown.core :refer [md->html]]
-            [apibot.ajax :refer [load-interceptors!]]
-            [ajax.core :refer [GET POST]])
+            [markdown.core :refer [md->html]])
   (:import goog.History))
 
 (defn nav-link [uri title page collapsed?]
@@ -72,15 +70,11 @@
 
 ;; -------------------------
 ;; Initialize app
-(defn fetch-docs! []
-  (GET "/docs" {:handler #(session/put! :docs %)}))
 
 (defn mount-components []
   (r/render [#'navbar] (.getElementById js/document "navbar"))
   (r/render [#'page] (.getElementById js/document "app")))
 
 (defn init! []
-  (load-interceptors!)
-  (fetch-docs!)
   (hook-browser-navigation!)
   (mount-components))

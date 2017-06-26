@@ -4,12 +4,12 @@
   :url "https://apibot.co"
 
   :dependencies [[clj-time "0.13.0"]
-                 [cljs-ajax "0.6.0"]
                  [com.google.guava/guava "20.0"]
                  [com.novemberain/monger "3.1.0" :exclusions [com.google.guava/guava]]
                  [compojure "1.6.0"]
                  [cprop "0.1.10"]
-                 [buddy "1.3.0"]
+                 [com.auth0/jwks-rsa "0.2.0"]
+                 [com.auth0/java-jwt "3.2.0"]
                  [funcool/struct "1.0.0"]
                  [luminus-immutant "0.2.3"]
                  [luminus-nrepl "0.1.4"]

@@ -28,7 +28,7 @@
 
 
 (defn serialize-graph [graph]
-  (-> (if-let [id (:id graph)]
+  (-> (if-let [^String id (:id graph)]
         (assoc graph :_id (ObjectId. id))
         (assoc graph :_id (ObjectId.)))
       (dissoc :id)))

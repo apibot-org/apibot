@@ -1,7 +1,6 @@
 (ns apibot.handler
   (:require [compojure.core :refer [routes wrap-routes]]
             [apibot.layout :refer [error-page]]
-            [apibot.routes.home :refer [home-routes]]
             [apibot.routes.services :refer [service-routes]]
             [compojure.route :as route]
             [apibot.env :refer [defaults]]
@@ -14,9 +13,6 @@
 
 (def app-routes
   (routes
-    (-> #'home-routes
-        (wrap-routes middleware/wrap-csrf)
-        (wrap-routes middleware/wrap-formats))
     #'service-routes
     (route/not-found
       (:body
