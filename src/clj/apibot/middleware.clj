@@ -78,6 +78,7 @@
 
 (defn wrap-base [handler]
   (-> ((:middleware defaults) handler)
+      wrap-jwt
       wrap-formats
       wrap-webjars
       (wrap-defaults
@@ -85,6 +86,5 @@
             (assoc-in [:security :anti-forgery] false)
             (dissoc :session)))
       wrap-context
-      wrap-jwt
       wrap-internal-error))
 
