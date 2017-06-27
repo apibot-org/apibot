@@ -20,6 +20,6 @@
    returns a response map with the error page as the body
    and the status specified by the status key"
   [{:keys [status title message]}]
-  {:status  (:status status)
+  {:status  status
    :headers {"content-type" "application/json"}
    :body    {:title title :message message}})

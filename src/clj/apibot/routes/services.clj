@@ -28,7 +28,7 @@
    :user-id s/Str
    :desc s/Str
    :edges [Edge]
-   :executable s/Str
+   :executable s/Bool
    :nodes [Node]
    :name s/Str})
 

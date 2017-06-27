@@ -11,5 +11,7 @@ profiles.clj
 .nrepl-port
 /log
 
+log/
+
 apibot.iml
 .idea/

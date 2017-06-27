@@ -12,7 +12,8 @@
             [apibot.auth :as auth])
   (:import [javax.servlet ServletContext]
            (com.auth0.jwt JWTVerifier)
-           (com.auth0.jwt.exceptions JWTVerificationException)))
+           (com.auth0.jwt.exceptions JWTVerificationException JWTDecodeException SignatureVerificationException TokenExpiredException InvalidClaimException)
+           (com.auth0.jwt.interfaces DecodedJWT Claim)))
 
 (defn wrap-context [handler]
   (fn [request]
@@ -39,14 +40,6 @@
                      :title   "Something very bad has happened!"
                      :message "We've dispatched a team of highly trained gnomes to take care of the problem."})))))
 
-(defn wrap-csrf [handler]
-  (wrap-anti-forgery
-    handler
-    {:error-response
-     (error-page
-       {:status 403
-        :title "Invalid anti-forgery token"})}))
-
 (defn wrap-formats [handler]
   (let [wrapped (-> handler wrap-params wrap-format)]
     (fn [request]
@@ -58,23 +51,40 @@
   (let [^JWTVerifier verifier (auth/create-verifier)]
     (fn [request]
       (let [token (-> request :headers (get "x-apibot-auth"))]
-        (println "Received Request:\n" request)
-        (println "Token:" token)
-        (try (.verify verifier (or token ""))
-             (handler request)
+        (try (let [decoded (.verify verifier (or token ""))
+                   user-id (-> decoded (.getClaim "http://apibot.co/user_id") .asString)]
+               (println "User Id: " user-id)
+               (handler (assoc-in request [:params :user-id] user-id)))
+             (catch JWTDecodeException e
+               (error-page {:status  403
+                            :title   "JWT decode exception"
+                            :message "Failed to decode the given token"}))
+             (catch SignatureVerificationException e
+               (error-page {:status  403
+                            :title   "Signature Verification failed"
+                            :message "Failed to verify the signature"}))
+             (catch TokenExpiredException e
+               (error-page {:status  403
+                            :title   "Token Expired"
+                            :message "The given token has expired"}))
+             (catch InvalidClaimException e
+               (error-page {:status  403
+                            :title   "Invalid Claim"
+                            :message "Invalid claim"}))
              (catch JWTVerificationException e
                (error-page {:status  403
-                            :title   "Authentication failed"
+                            :title   "JWT Verification Failed"
                             :message "The provided token could not be verified"})))))))
 
 (defn wrap-base [handler]
   (-> ((:middleware defaults) handler)
-      wrap-jwt
+      wrap-formats
       wrap-webjars
       (wrap-defaults
         (-> site-defaults
             (assoc-in [:security :anti-forgery] false)
             (dissoc :session)))
       wrap-context
+      wrap-jwt
       wrap-internal-error))
 
