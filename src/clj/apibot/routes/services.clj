@@ -4,6 +4,7 @@
     [compojure.api.sweet :refer :all]
     [ring.util.http-response :as response :refer :all]
     [schema.core :as s]
+    [clojure.string :refer  [split]]
     [clojure.tools.logging :as log]))
 
 (s/defschema User
@@ -25,7 +26,7 @@
 
 (s/defschema Graph
   {(s/optional-key :id) (s/maybe s/Str)
-   :user-id s/Str
+   (s/optional-key :user-id) (s/maybe s/Str)
    :desc s/Str
    :edges [Edge]
    :executable s/Bool
@@ -60,6 +61,12 @@
         :query-params [user-id :- s/Str]
         :summary      "Returns all the graphs that belong to the current user."
         (ok {:graphs (db/find-graphs-by-user-id user-id)}))
+
+      (DELETE "/graphs"  []
+        :return       {:graphs [Graph]}
+        :query-params [user-id :- s/Str ids :- s/Str]
+        :summary      "Returns all the graphs that belong to the current user."
+        (ok {:graphs (db/remove-graphs-by-id user-id (split ids #","))}))
 
       (PUT "/graphs"  []
         :return       {:graphs [Graph]}

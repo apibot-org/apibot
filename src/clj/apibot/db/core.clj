@@ -3,7 +3,7 @@
     [apibot.config :refer [env]]
     [monger.collection :as mc]
     [monger.core :as mg]
-    [monger.operators :refer :all]
+    [monger.operators :refer [$set $in]]
     [mount.core :refer [defstate]])
   (:import org.bson.types.ObjectId))
 
@@ -14,18 +14,8 @@
 (defstate db
   :start (:db db*))
 
-(defn create-user [user]
-  (mc/insert db "users" user))
-
-(defn update-user [id first-name last-name email]
-  (mc/update db "users" {:_id id}
-             {$set {:first_name first-name
-                    :last_name last-name
-                    :email email}}))
-
-(defn get-user [id]
-  (mc/find-one-as-map db "users" {:_id id}))
-
+(defn ^ObjectId object-id [^String string]
+  (ObjectId. string))
 
 (defn serialize-graph [graph]
   (-> (if-let [^String id (:id graph)]
@@ -46,11 +36,19 @@
 
 (defn set-graphs-by-user-id [user-id graphs]
   (->> (map serialize-graph graphs)
+       (map #(assoc % :user-id user-id))
        (map (fn [graph]
               (mc/find-and-modify db "graphs"
-                {:user-id user-id
-                 :_id (:_id graph)}
-                (assoc graph :user-id user-id)
-                {:return-new true
-                 :upsert true})))
+                                  {:user-id user-id
+                                   :_id     (:_id graph)}
+                                  graph
+                                  {:return-new true
+                                   :upsert     true})))
        (map deserialize-graph)))
+
+(defn remove-graphs-by-id [user-id ids]
+  (let [obj-ids (->> (map object-id ids)
+                     (into []))]
+    (mc/remove db "graphs" {:user-id user-id
+                            :_id     {$in object-id}})))
+
