@@ -55,15 +55,15 @@
     (context "/users/me" []
       :tags ["Users"]
 
-      (GET "/graphs" []
-        :return      {:graphs [Graph]}
-        :summary     "Returns all the graphs that belong to the current user."
-        (let [user-id "fernandohur"]
-          (ok {:graphs (db/find-graphs-by-user-id user-id)})))
+      (GET "/graphs"  []
+        :return       {:graphs [Graph]}
+        :query-params [user-id :- s/Str]
+        :summary      "Returns all the graphs that belong to the current user."
+        (ok {:graphs (db/find-graphs-by-user-id user-id)}))
 
-      (PUT "/graphs" []
-        :return      {:graphs [Graph]}
-        :body-params [graphs :- [Graph]]
-        :summary     "Sets a user's graphs"
-        (let [user-id "fernandohur"]
-          (ok {:graphs (db/set-graphs-by-user-id user-id graphs)}))))))
+      (PUT "/graphs"  []
+        :return       {:graphs [Graph]}
+        :body-params  [graphs :- [Graph]]
+        :summary      "Sets a user's graphs"
+        :query-params [user-id :- s/Str]
+        (ok {:graphs (db/set-graphs-by-user-id user-id graphs)})))))

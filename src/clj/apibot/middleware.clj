@@ -53,8 +53,9 @@
       (let [token (-> request :headers (get "x-apibot-auth"))]
         (try (let [decoded (.verify verifier (or token ""))
                    user-id (-> decoded (.getClaim "http://apibot.co/user_id") .asString)]
-               (println "User Id: " user-id)
-               (handler (assoc-in request [:params :user-id] user-id)))
+               (if user-id
+                 (handler (assoc-in request [:query-params :user-id] user-id))
+                 (handler request)))
              (catch JWTDecodeException e
                (error-page {:status  403
                             :title   "JWT decode exception"
