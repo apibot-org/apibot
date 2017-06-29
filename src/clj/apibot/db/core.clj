@@ -19,8 +19,8 @@
 
 (defn serialize-graph [graph]
   (-> (if-let [^String id (:id graph)]
-        (assoc graph :_id (ObjectId. id))
-        (assoc graph :_id (ObjectId.)))
+        (assoc graph :_id id)
+        (assoc graph :_id (.toHexString (ObjectId.))))
       (dissoc :id)))
 
 (defn deserialize-graph [graph]
@@ -34,7 +34,9 @@
 (defn purge-graphs []
   (mc/purge-many db ["graphs"]))
 
-(defn set-graphs-by-user-id [user-id graphs]
+(defn set-graphs-by-user-id
+  "Updates or inserts all the given owned by the given user."
+  [user-id graphs]
   (->> (map serialize-graph graphs)
        (map #(assoc % :user-id user-id))
        (map (fn [graph]
@@ -47,8 +49,11 @@
        (map deserialize-graph)))
 
 (defn remove-graphs-by-id [user-id ids]
+  "Removes all graphs with the given ids owned by the given user.
+  Returns the number of removed graphs."
   (let [obj-ids (->> (map object-id ids)
                      (into []))]
-    (mc/remove db "graphs" {:user-id user-id
-                            :_id     {$in object-id}})))
+    (->> (mc/remove db "graphs" {:user-id user-id
+                                 :_id     {$in object-id}})
+         (.getN))))
 

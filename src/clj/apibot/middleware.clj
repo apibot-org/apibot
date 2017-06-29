@@ -40,6 +40,13 @@
                      :title   "Something very bad has happened!"
                      :message "We've dispatched a team of highly trained gnomes to take care of the problem."})))))
 
+(defn wrap-logger [handler]
+  (fn [request]
+    (log/info (str "Request: " request))
+    (let [response (handler request)]
+      (log/info (str "Response: " response))
+      response)))
+
 (defn wrap-formats [handler]
   (let [wrapped (-> handler wrap-params wrap-format)]
     (fn [request]
@@ -87,5 +94,6 @@
             (assoc-in [:security :anti-forgery] false)
             (dissoc :session)))
       wrap-context
-      wrap-internal-error))
+      wrap-internal-error
+      wrap-logger))
 
