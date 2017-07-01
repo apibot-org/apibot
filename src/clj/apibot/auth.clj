@@ -30,7 +30,7 @@
        (Algorithm/RSA256)
        (JWT/require)
        (.withIssuer "https://picnictest.eu.auth0.com/")
-       (.withAudience (into-array String [(:auth0-audience env)]))
+       (.withAudience (into-array String ["https://api-dev.apibot.co"]))
        (.build)))
   ([]
    (-> (jwt-key-provider) create-verifier)))
