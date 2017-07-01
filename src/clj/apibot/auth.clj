@@ -1,9 +1,12 @@
 (ns apibot.auth
-  (:import (com.auth0.jwt.algorithms Algorithm)
-           (com.auth0.jwt JWT JWTVerifier)
-           (com.auth0.jwt.interfaces RSAKeyProvider)
-           (com.auth0.jwk UrlJwkProvider Jwk)
-           (java.security.interfaces RSAPublicKey)))
+  (:require
+    [apibot.config :refer [env]])
+  (:import
+    [com.auth0.jwt.algorithms Algorithm]
+    [com.auth0.jwt JWT JWTVerifier]
+    [com.auth0.jwt.interfaces RSAKeyProvider]
+    [com.auth0.jwk UrlJwkProvider Jwk]
+    [java.security.interfaces RSAPublicKey]))
 
 
 (defn ^RSAKeyProvider jwt-key-provider
@@ -27,7 +30,7 @@
        (Algorithm/RSA256)
        (JWT/require)
        (.withIssuer "https://picnictest.eu.auth0.com/")
-       (.withAudience (into-array String ["https://api-dev.apibot.co"]))
+       (.withAudience (into-array String [(:auth0-audience env)]))
        (.build)))
   ([]
    (-> (jwt-key-provider) create-verifier)))
