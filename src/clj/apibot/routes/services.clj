@@ -1,11 +1,12 @@
 (ns apibot.routes.services
   (:require
+    [apibot.config :as config]
     [apibot.db.core :as db]
+    [clojure.string :refer [split]]
+    [clojure.tools.logging :as log]
     [compojure.api.sweet :refer :all]
     [ring.util.http-response :as response :refer :all]
-    [schema.core :as s]
-    [clojure.string :refer [split]]
-    [clojure.tools.logging :as log]))
+    [schema.core :as s]))
 
 (s/defschema User
   {:id    (s/maybe s/Str)
@@ -21,11 +22,11 @@
    :graph-id s/Str
    :name     s/Str
    :position {:x Double :y Double}
-   :props    s/Any
+   :props    {s/Keyword s/Any}
    :type     s/Str})
 
 (s/defschema Graph
-  {(s/optional-key :id)      (s/maybe s/Str)
+  {:id                       s/Str
    (s/optional-key :user-id) (s/maybe s/Str)
    :desc                     s/Str
    :edges                    [Edge]
@@ -44,13 +45,16 @@
     :tags ["Root"]
 
     (DELETE "/purge" []
+      ;; TODO find a way of only enabling this endpoint in development
       :summary "purges the database"
-      (ok (db/purge-graphs)))
+      (when config/dev?
+        (ok (db/purge-graphs))))
 
-    (POST "/users" []
+    (PUT "/users" []
       :return User
       :body-params [user :- User]
-      :summary "Creates a new user"
+      :query-params [user-id :- s/Str]
+      :summary "Updates the current user"
       (ok nil))
 
     (context "/users/me" []

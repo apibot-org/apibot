@@ -51,9 +51,8 @@
 (defn remove-graphs-by-id [user-id ids]
   "Removes all graphs with the given ids owned by the given user.
   Returns the number of removed graphs."
-  (let [obj-ids (->> (map object-id ids)
-                     (into []))]
+  (let [ids (into [] ids)]
     (->> (mc/remove db "graphs" {:user-id user-id
-                                 :_id     {$in object-id}})
+                                 :_id     {$in ids}})
          (.getN))))
 

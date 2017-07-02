@@ -1,6 +1,6 @@
 (ns apibot.auth
   (:require
-    [apibot.config :refer [env]])
+    [apibot.config :as config])
   (:import
     [com.auth0.jwt.algorithms Algorithm]
     [com.auth0.jwt JWT JWTVerifier]
@@ -30,7 +30,7 @@
        (Algorithm/RSA256)
        (JWT/require)
        (.withIssuer "https://picnictest.eu.auth0.com/")
-       (.withAudience (into-array String ["https://api-dev.apibot.co"]))
+       (.withAudience (into-array String [(config/auth0-audience)]))
        (.build)))
   ([]
    (-> (jwt-key-provider) create-verifier)))

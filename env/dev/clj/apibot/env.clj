@@ -1,7 +1,8 @@
 (ns apibot.env
-  (:require [selmer.parser :as parser]
-            [clojure.tools.logging :as log]
-            [apibot.dev-middleware :refer [wrap-dev]]))
+  (:require
+    [apibot.dev-middleware :refer [wrap-dev]]
+    [clojure.tools.logging :as log]
+    [selmer.parser :as parser]))
 
 (def defaults
   {:init
