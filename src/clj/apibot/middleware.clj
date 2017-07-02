@@ -43,6 +43,8 @@
 (defn wrap-logger [handler]
   (fn [request]
     (log/info (str "Request: " request))
+    (println "Request (println)" request)
+    (-> System/out (.println (str "Request (syso)" request)))
     (let [response (handler request)]
       (log/info (str "Response: " response))
       response)))

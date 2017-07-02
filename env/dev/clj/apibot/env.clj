@@ -2,14 +2,17 @@
   (:require
     [apibot.dev-middleware :refer [wrap-dev]]
     [clojure.tools.logging :as log]
+    [apibot.config :as config]
     [selmer.parser :as parser]))
 
 (def defaults
   {:init
    (fn []
      (parser/cache-off!)
-     (log/info "\n-=[apibot started successfully using the development profile]=-"))
+     (println "audience:" (config/auth0-audience) ", dev:" (config/dev))
+     (println "\n-=[apibot started successfully using the development profile]=-"))
    :stop
    (fn []
-     (log/info "\n-=[apibot has shut down successfully]=-"))
-   :middleware wrap-dev})
+     (println "\n-=[apibot has shut down successfully]=-"))
+   :middleware
+   wrap-dev})
