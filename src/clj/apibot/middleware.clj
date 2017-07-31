@@ -1,15 +1,17 @@
 (ns apibot.middleware
-  (:require [apibot.env :refer [defaults]]
-            [clojure.tools.logging :as log]
-            [apibot.layout :refer [*app-context* error-page]]
-            [ring.middleware.anti-forgery :refer [wrap-anti-forgery]]
-            [ring.middleware.webjars :refer [wrap-webjars]]
-            [muuntaja.middleware :refer [wrap-format wrap-params]]
-            [apibot.config :refer [env]]
-            [ring.middleware.flash :refer [wrap-flash]]
-            [immutant.web.middleware :refer [wrap-session]]
-            [ring.middleware.defaults :refer [site-defaults wrap-defaults]]
-            [apibot.auth :as auth])
+  (:require
+    [apibot.auth :as auth]
+    [apibot.config :refer [env]]
+    [apibot.env :refer [defaults]]
+    [apibot.layout :refer [*app-context* error-page]]
+    [clojure.tools.logging :as log]
+    [clojure.string :refer [starts-with?]]
+    [immutant.web.middleware :refer [wrap-session]]
+    [muuntaja.middleware :refer [wrap-format wrap-params]]
+    [ring.middleware.anti-forgery :refer [wrap-anti-forgery]]
+    [ring.middleware.defaults :refer [site-defaults wrap-defaults]]
+    [ring.middleware.flash :refer [wrap-flash]]
+    [ring.middleware.webjars :refer [wrap-webjars]])
   (:import [javax.servlet ServletContext]
            (com.auth0.jwt JWTVerifier)
            (com.auth0.jwt.exceptions JWTVerificationException JWTDecodeException SignatureVerificationException TokenExpiredException InvalidClaimException)
@@ -59,32 +61,35 @@
 (defn wrap-jwt [handler]
   (let [^JWTVerifier verifier (auth/create-verifier)]
     (fn [request]
-      (let [token (-> request :headers (get "x-apibot-auth"))]
-        (try (let [decoded (.verify verifier (or token ""))
-                   user-id (-> decoded (.getClaim "http://apibot.co/user_id") .asString)]
-               (if user-id
-                 (handler (assoc-in request [:query-params :user-id] user-id))
-                 (handler request)))
-             (catch JWTDecodeException e
-               (error-page {:status  403
-                            :title   "JWT decode exception"
-                            :message "Failed to decode the given token"}))
-             (catch SignatureVerificationException e
-               (error-page {:status  403
-                            :title   "Signature Verification failed"
-                            :message "Failed to verify the signature"}))
-             (catch TokenExpiredException e
-               (error-page {:status  403
-                            :title   "Token Expired"
-                            :message "The given token has expired"}))
-             (catch InvalidClaimException e
-               (error-page {:status  403
-                            :title   "Invalid Claim"
-                            :message "Invalid claim"}))
-             (catch JWTVerificationException e
-               (error-page {:status  403
-                            :title   "JWT Verification Failed"
-                            :message "The provided token could not be verified"})))))))
+      ;; XXX protect only the /api/ endpoints. Is this really what we want?
+      (if (starts-with? (:uri request) "/api/")
+        (let [token (-> request :headers (get "x-apibot-auth"))]
+          (try (let [decoded (.verify verifier (or token ""))
+                     user-id (-> decoded (.getClaim "http://apibot.co/user_id") .asString)]
+                 (if user-id
+                   (handler (assoc-in request [:query-params :user-id] user-id))
+                   (handler request)))
+               (catch JWTDecodeException e
+                 (error-page {:status  403
+                              :title   "JWT decode exception"
+                              :message "Failed to decode the given token"}))
+               (catch SignatureVerificationException e
+                 (error-page {:status  403
+                              :title   "Signature Verification failed"
+                              :message "Failed to verify the signature"}))
+               (catch TokenExpiredException e
+                 (error-page {:status  403
+                              :title   "Token Expired"
+                              :message "The given token has expired"}))
+               (catch InvalidClaimException e
+                 (error-page {:status  403
+                              :title   "Invalid Claim"
+                              :message "Invalid claim"}))
+               (catch JWTVerificationException e
+                 (error-page {:status  403
+                              :title   "JWT Verification Failed"
+                              :message "The provided token could not be verified"}))))
+        (handler request)))))
 
 (defn wrap-base [handler]
   (-> ((:middleware defaults) handler)

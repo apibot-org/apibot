@@ -1,48 +1,73 @@
 (ns apibot.core
-  (:require [reagent.core :as r]
-            [reagent.session :as session]
-            [secretary.core :as secretary :include-macros true]
-            [goog.events :as events]
-            [goog.history.EventType :as HistoryEventType]
-            [markdown.core :refer [md->html]])
+  (:require
+    [apibot.api :as api]
+    [apibot.auth0 :as auth0]
+    [apibot.grexec :as grexec]
+    [apibot.raven :as raven]
+    [apibot.storage :as storage]
+    [apibot.util :as util]
+    [apibot.views.dialogs :as dialogs]
+    [apibot.views.editor :as editor]
+    [apibot.views.executables :as executables]
+    [apibot.views.execution :as execution]
+    [apibot.views.login :as login]
+    [apibot.views.navbar :as navbar]
+    [apibot.views.tasks-dialog :as tasks-dialog]
+    [cljsjs.papaparse]
+    [goog.events :as events]
+    [goog.history.EventType :as HistoryEventType]
+    [promesa.core :as p]
+    [reagent.core :as reagent :refer [atom cursor]]
+    [reagent.session :as session]
+    [secretary.core :as secretary :include-macros true])
   (:import goog.History))
 
-(defn nav-link [uri title page collapsed?]
-  [:li.nav-item
-   {:class (when (= page (session/get :page)) "active")}
-   [:a.nav-link
-    {:href uri
-     :on-click #(reset! collapsed? true)} title]])
+;; ---- App State ----
 
-(defn navbar []
-  (let [collapsed? (r/atom true)]
-    (fn []
-      [:nav.navbar.navbar-dark.bg-primary
-       [:button.navbar-toggler.hidden-sm-up
-        {:on-click #(swap! collapsed? not)} "☰"]
-       [:div.collapse.navbar-toggleable-xs
-        (when-not @collapsed? {:class "in"})
-        [:a.navbar-brand {:href "#/"} "apibot"]
-        [:ul.nav.navbar-nav
-         [nav-link "#/" "Home" :home collapsed?]
-         [nav-link "#/about" "About" :about collapsed?]]]])))
+(def *app-state
+  (atom
+    {:graphs     grexec/graphs
+     :executions {}
+     :ui         {:selected-graph-id     nil
+                  :tasks-dialog-expanded true}}))
 
-(defn about-page []
-  [:div.container
-   [:div.row
-    [:div.col-md-12
-     [:img {:src (str js/context "/img/warning_clojure.png")}]]]])
+;; ---- Views ----
+
+(defn editor-page [& args]
+  [:div
+   [navbar/navbar *app-state]
+   [tasks-dialog/tasks-dialog *app-state]
+   [:div.container-fluid
+    [editor/editor *app-state]]])
+
+(defn executions-page []
+  [:div
+   [navbar/navbar *app-state]
+   [:div.container-fluid
+    [execution/execution (session/get :graph-id) *app-state]]])
+
+(defn executables-page [& args]
+  [:div
+   [navbar/navbar *app-state]
+   [:div.container-fluid
+    [executables/executables *app-state]]])
+
+(defn login-page [& args]
+  [:div
+   [:div.container
+    {:style {:max-width "730px"}}
+    [login/login *app-state]]])
 
 (defn home-page []
   [:div.container
-   (when-let [docs (session/get :docs)]
-     [:div.row>div.col-sm-12
-      [:div {:dangerouslySetInnerHTML
-             {:__html (md->html docs)}}]])])
+     [:p "Welcome to the jungle"]])
 
 (def pages
   {:home #'home-page
-   :about #'about-page})
+   :editor #'editor-page
+   :executions #'executions-page
+   :executables #'executables-page
+   :login #'login-page})
 
 (defn page []
   [(pages (session/get :page))])
@@ -52,10 +77,17 @@
 (secretary/set-config! :prefix "#")
 
 (secretary/defroute "/" []
-  (session/put! :page :home))
+  (session/put! :page :editor))
 
-(secretary/defroute "/about" []
-  (session/put! :page :about))
+(secretary/defroute "/editor" []
+  (session/put! :page :editor))
+
+(secretary/defroute "/executions/:graph-id" [graph-id]
+  (session/put! :graph-id graph-id)
+  (session/put! :page :executions))
+
+(secretary/defroute "/executables" []
+  (session/put! :page :executables))
 
 ;; -------------------------
 ;; History
@@ -72,8 +104,7 @@
 ;; Initialize app
 
 (defn mount-components []
-  (r/render [#'navbar] (.getElementById js/document "navbar"))
-  (r/render [#'page] (.getElementById js/document "app")))
+  (reagent/render [#'page] (.getElementById js/document "app")))
 
 (defn init! []
   (hook-browser-navigation!)
