@@ -23,8 +23,7 @@
 ;; ---- Route Helpers ----
 
 (defn goto [url]
-  (println "Goto: " url)
-  (set! (-> js/window .-location .-hash)) url)
+  (aset (-> js/window .-location) "hash" url))
 
 (defn current-page? [page]
   (starts-with? (-> js/window .-location .-hash) page))
