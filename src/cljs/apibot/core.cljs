@@ -58,13 +58,8 @@
     {:style {:max-width "730px"}}
     [login/login *app-state]]])
 
-(defn home-page []
-  [:div.container
-     [:p "Welcome to the jungle"]])
-
 (def pages
-  {:home #'home-page
-   :editor #'editor-page
+  {:editor #'editor-page
    :executions #'executions-page
    :executables #'executables-page
    :login #'login-page})
