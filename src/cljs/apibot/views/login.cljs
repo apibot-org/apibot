@@ -26,12 +26,8 @@
       (p/catch (fn [error] (show-error-msg error)))))
 
 (defn authenticate [*app-state]
-  (-> (auth0/request-auth)
-      (p/then (fn [access-token]
-                (reset! api/*token access-token)
-                (storage/set-item :access-token access-token)
-                (init-bootstrap *app-state)))
-      (p/catch (fn [error] (show-error-msg error)))))
+  (auth0/request-auth))
+
 
 (defn login
   [*app-state]

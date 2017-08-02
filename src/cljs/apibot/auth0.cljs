@@ -2,27 +2,60 @@
   "XXX Refactor this, do we even need a namespace, the whole auth flow is super messy..."
   (:require
     [apibot.env :as env]
-    [apibot.http :as http :refer [http-request!]]
-    [apibot.util :as util]
-    [clojure.string :as str :refer [replace starts-with?]]
+    [apibot.storage :as storage]
     [promesa.core :as p]))
 
-(defn fetch-access-token [{:keys [code verifier]}]
-  (http-request!
-    {:url (str "https://" env/auth0-domain "/oauth/token")
-     :http-method :post
-     :headers {:content-type "application/json"}
-     :body {:grant_type "authorization_code"
-            :client_id env/auth0-client-id
-            :code_verifier verifier
-            :code code
-            :redirect_uri env/auth0-redirect-uri}}))
 
-(defn request-auth
-  "Returns a promise with the access token if the request succeeded or nil if it didn't"
-  ;; TODO implement this!
-  [])
+(def web-auth
+  (new js/auth0.WebAuth
+       #js {:domain       env/auth0-domain,
+            :clientID     env/auth0-client-id,
+            :redirectUri  env/auth0-redirect-uri
+            :audience     env/auth0-audience,
+            :responseType "token id_token",
+            :scope        "openid profile email"}))
 
+(defn logout
+  "Clears local storage and refreshes the browser thus killing all in-memory state."
+  []
+  (storage/clear)
+  (-> js/window .-location .reload))
+
+(defn set-session
+  [access-token expires-in]
+  (let [expires-at (+ (js/Date.now) (* expires-in 1000))]
+    (storage/set-item :access-token access-token)
+    (storage/set-item :expires-at expires-at)))
+
+(defn authenticated?
+  []
+  (< (js/Date.now) (storage/get-item :expires-at 0)))
+
+(defn handle-auth []
+  (p/promise
+    (fn [resolve reject]
+      (.parseHash web-auth
+                  (fn [err auth-result]
+                    (println "Handle Auth:" err auth-result
+                      (cond
+                        ; Case #1: there is an auth result
+                        auth-result
+                        (let [access-token (.-accessToken auth-result)
+                              expires-in (.-expiresIn auth-result)]
+                          (set-session access-token expires-in)
+                          (resolve true))
+
+                        ; Case #2: There was an error parsing the auth result
+                        err
+                        (reject (ex-info "Failed to authenticate" err))
+
+                        ; Case #3: There was no auth result, skip silently
+                        :else
+                        (println "Not handling request since there was no auth-token"))))))))
+
+
+(defn request-auth []
+  (.authorize web-auth))
 
 
 

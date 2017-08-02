@@ -5,7 +5,8 @@
     [apibot.env :as env]
     [reagent.core :refer [cursor]]
     [apibot.router :as router]
-    [apibot.views.commons :refer [glyphicon-run]]))
+    [apibot.views.commons :refer [glyphicon-run]]
+    [apibot.auth0 :as auth0]))
 
 (defn active-class-if-page [page]
   (if (router/current-page? page)
@@ -20,22 +21,26 @@
        (when (= :dev env/env)
          [:li
           [:a.navbar-brand
-           {:style    {:cursor "pointer"}
+           {
             :on-click (fn [e])}
            " Apibot DEV"]])
 
        [:li {:class (active-class-if-page "#editor")}
         [:a
-         {:style {:cursor "pointer"}
-          :href  "#editor"}
+         {
+          :href "#editor"}
          [:span.glyphicon.glyphicon-edit {:aria-hidden "true"}] " Editor"]]
 
        [:li {:class (active-class-if-page "#executables")}
         [:a
-         {:style {:cursor "pointer"}
-          :href  "#executables"}
+         {
+          :href "#executables"}
          [:span.glyphicon.glyphicon-flash {:aria-hidden "true"}] " Executables"]]]
 
-      [:ul.nav.navbar-nav.navbar-right]]]))
+      [:ul.nav.navbar-nav.navbar-right
+       [:li
+        [:a
+         {:style    {:role "button"}
+          :on-click #(auth0/logout)}]]]]]))
 
 

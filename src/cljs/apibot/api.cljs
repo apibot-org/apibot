@@ -9,7 +9,8 @@
     [httpurr.status :as status]
     [promesa.core :as p]
     [reagent.core :refer [cursor]]
-    [secretary.core :as secretary]))
+    [secretary.core :as secretary]
+    [apibot.state :as state]))
 
 (def *token (atom (storage/get-item :access-token "")))
 
@@ -107,7 +108,7 @@
   (util/throttle 10000 #(sync-graphs %1 %2)))
 
 (defn bootstrap!
-  "Bootstraps the app by loaded all graphs owned by the user and registering a watch function
+  "Bootstraps the app by loading all graphs owned by the user and registering a watch function
   over the *app-state"
   ; XXX Probably not the best place to put this function...
   [*app-state]
@@ -125,6 +126,7 @@
 
 
               (println "Registering watch function over *app-state")
+              (state/bootstrapped!)
               ;; Removing any existing watch ensures that we never have more than one watch
               ;; at any time.
               (remove-watch *app-state :storage)

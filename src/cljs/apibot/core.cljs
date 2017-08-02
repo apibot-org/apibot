@@ -14,22 +14,12 @@
     [apibot.views.navbar :as navbar]
     [apibot.views.tasks-dialog :as tasks-dialog]
     [cljsjs.papaparse]
-    [goog.events :as events]
-    [goog.history.EventType :as HistoryEventType]
+    [apibot.state :refer [*app-state]]
     [promesa.core :as p]
     [reagent.core :as reagent :refer [atom cursor]]
     [reagent.session :as session]
-    [secretary.core :as secretary :include-macros true])
-  (:import goog.History))
-
-;; ---- App State ----
-
-(def *app-state
-  (atom
-    {:graphs     grexec/graphs
-     :executions {}
-     :ui         {:selected-graph-id     nil
-                  :tasks-dialog-expanded true}}))
+    [secretary.core :as secretary :include-macros true]
+    [apibot.router :as router]))
 
 ;; ---- Views ----
 
@@ -59,41 +49,13 @@
     [login/login *app-state]]])
 
 (def pages
-  {:editor #'editor-page
-   :executions #'executions-page
+  {:editor      #'editor-page
+   :executions  #'executions-page
    :executables #'executables-page
-   :login #'login-page})
+   :login       #'login-page})
 
 (defn page []
   [(pages (session/get :page))])
-
-;; -------------------------
-;; Routes
-(secretary/set-config! :prefix "#")
-
-(secretary/defroute "/" []
-  (session/put! :page :editor))
-
-(secretary/defroute "/editor" []
-  (session/put! :page :editor))
-
-(secretary/defroute "/executions/:graph-id" [graph-id]
-  (session/put! :graph-id graph-id)
-  (session/put! :page :executions))
-
-(secretary/defroute "/executables" []
-  (session/put! :page :executables))
-
-;; -------------------------
-;; History
-;; must be called after routes have been defined
-(defn hook-browser-navigation! []
-  (doto (History.)
-        (events/listen
-          HistoryEventType/NAVIGATE
-          (fn [event]
-              (secretary/dispatch! (.-token event))))
-        (.setEnabled true)))
 
 ;; -------------------------
 ;; Initialize app
@@ -102,5 +64,6 @@
   (reagent/render [#'page] (.getElementById js/document "app")))
 
 (defn init! []
-  (hook-browser-navigation!)
+  (util/reset-in! *app-state [:graphs] grexec/graphs)
+  (router/hook-browser-navigation!)
   (mount-components))

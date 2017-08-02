@@ -52,3 +52,12 @@
     [:button.btn.btn-primary
      {:type "button" :on-click #(do (hide!) (handler))}
      "Yes, I'm sure"]]])
+
+(defn message-dialog [title message]
+  [generic-dialog
+   title
+   [:p message]
+   [:div
+    [:button.btn.btn-primary
+     {:type "button" :on-click #(do (hide!))}
+     "Ok"]]])
