@@ -43,7 +43,8 @@
     [executables/executables *app-state]]])
 
 (defn login-page [& args]
-  [:div
+  [:div {:style {:background "url('img/robo-pattern.jpeg')"
+                 :height "100vh"}}
    [:div.container
     {:style {:max-width "730px"}}
     [login/login *app-state]]])
