@@ -1,6 +1,7 @@
 (ns apibot.db.core
   (:require
     [apibot.config :refer [env]]
+    [apibot.util :as util]
     [monger.collection :as mc]
     [monger.core :as mg]
     [monger.operators :refer [$set $in]]
@@ -14,8 +15,13 @@
 (defstate db
   :start (:db db*))
 
-(defn ^ObjectId object-id [^String string]
-  (ObjectId. string))
+(defn normalize-mongo-id
+  [document]
+  (-> (util/rename-key document :_id :id)
+      (update :id str)))
+
+(defn ^String object-id [^String string]
+  (.toHexString (ObjectId. string)))
 
 (defn serialize-graph [graph]
   (-> (if-let [^String id (:id graph)]
@@ -24,8 +30,7 @@
       (dissoc :id)))
 
 (defn deserialize-graph [graph]
-  (-> (dissoc graph :_id)
-      (assoc :id (str (:_id graph)))))
+  (normalize-mongo-id graph))
 
 (defn find-graphs-by-user-id [user-id]
   (->> (mc/find-maps db "graphs" {:user-id user-id})
@@ -35,7 +40,7 @@
   (mc/purge-many db ["graphs"]))
 
 (defn set-graphs-by-user-id
-  "Updates or inserts all the given owned by the given user."
+  "Updates or inserts all the given graphs owned by the given user."
   [user-id graphs]
   (->> (map serialize-graph graphs)
        (map #(assoc % :user-id user-id))

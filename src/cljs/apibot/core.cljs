@@ -62,7 +62,9 @@
 ;; Initialize app
 
 (defn mount-components []
-  (reagent/render [#'page] (.getElementById js/document "app")))
+  (reagent/render
+    [:div [#'page] [dialogs/dialog-view]]
+    (.getElementById js/document "app")))
 
 (defn init! []
   (util/reset-in! *app-state [:graphs] grexec/graphs)

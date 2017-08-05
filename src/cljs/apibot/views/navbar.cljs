@@ -27,20 +27,19 @@
 
        [:li {:class (active-class-if-page "#editor")}
         [:a
-         {
-          :href "#editor"}
+         {:href "#editor"}
          [:span.glyphicon.glyphicon-edit {:aria-hidden "true"}] " Editor"]]
 
        [:li {:class (active-class-if-page "#executables")}
         [:a
-         {
-          :href "#executables"}
+         {:href "#executables"}
          [:span.glyphicon.glyphicon-flash {:aria-hidden "true"}] " Executables"]]]
 
       [:ul.nav.navbar-nav.navbar-right
        [:li
         [:a
-         {:style    {:role "button"}
-          :on-click #(auth0/logout)}]]]]]))
+         {:role "button"
+          :on-click #(auth0/logout)}
+         [:span.glyphicon.glyphicon-user {:aria-hidden "true"}] " Logout"]]]]]))
 
 

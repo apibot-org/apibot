@@ -24,6 +24,7 @@
     [apibot.auth0 :as auth0]
     [apibot.views.dialogs :as dialogs]
     [apibot.api :as api]
+    [apibot.mixpanel :as mixpanel]
     [apibot.state :as state :refer [*app-state]]
     [goog.history.EventType :as HistoryEventType]
     [promesa.core :as p])
@@ -43,6 +44,12 @@
 
     (auth0/authenticated?)
     (do
+      (-> (auth0/fetch-user-info (api/token!))
+          (p/then (fn [{:keys [email sub picture]}]
+                    (api/upsert-user {:email email :picture picture :user-id sub})))
+          (p/then (fn [{:keys [id email]}]
+                    (mixpanel/set-user-id! id)
+                    (mixpanel/set! {:$email email}))))
       (session/put! :page :login)
       (-> (api/bootstrap! *app-state)
           (p/then #(session/put! :page page-name))
@@ -52,7 +59,9 @@
     (do
       (session/put! :page :login)
       (-> (auth0/handle-auth)
-          (p/then (fn [] (handle-request page-name)))
+          (p/then (fn [access-token]
+                    (println "Authentication Succeeded! proceeding to " page-name)
+                    (handle-request page-name)))
           (p/catch
             (fn [error]
               (println "Error:" error)

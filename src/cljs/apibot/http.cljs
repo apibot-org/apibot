@@ -2,6 +2,7 @@
   "An HTTP client based on httpurr's xhr client"
   (:require
     [httpurr.client :as http]
+    [httpurr.status :as status]
     [httpurr.client.xhr :as xhr]
     [promesa.core :as p]
     [apibot.util :as util]
@@ -66,35 +67,43 @@
   query-params: a possibly nil map
   body: a possibly nil string or map
   "
-  [request]
-  (let [{:keys [http-method url headers query-params body]} (with-defaults request)]
-    ;; do some validation, nothing out of the ordinary.
-    (cond
-      (not (util/url? url))
-      (p/rejected (ex-info "The provided url is not valid" url))
-      (nil? http-method)
-      (p/rejected (ex-info (str "The provided HTTP method is not valid ('" http-method "')") http-method))
-      (not (map? query-params))
-      (p/rejected (ex-info "The provided query params are not valid" query-params))
-      (not (every? #(-> % name empty? not) (keys headers)))
-      (p/rejected (ex-info "The provided headers are not valid" headers))
-      :else
-      (let [;; And format the method e.g. :get instead of "GET"
-            method (-> http-method name lower-case keyword)
-            ;; if the body is meant to be json,
-            body (format-json-body-if-possible request)
-            ;; format headers so that header keys are strings
-            headers (util/map-keys name headers)
-            ;; craft the promise
-            resp-promise (http/send! xhr/client
-                                     {:method       method
-                                      :query-params query-params
-                                      :url          url
-                                      :headers      headers
-                                      :body         body})]
-        (-> resp-promise
-            ;; ensure the body is parsed from JSON
-            (p/then (fn [response]
-                      (-> response
-                          (parse-body-if-possible)
-                          (update :headers util/keywordize-keys)))))))))
+  ([request]
+   (http-request! request {:proxy false}))
+  ([request {:keys [proxy]}]
+   (let [{:keys [http-method url headers query-params body]} (with-defaults request)]
+     ;; do some validation, nothing out of the ordinary.
+     (cond
+       (not (util/url? url))
+       (p/rejected (ex-info "The provided url is not valid" url))
+       (nil? http-method)
+       (p/rejected (ex-info (str "The provided HTTP method is not valid ('" http-method "')") http-method))
+       (not (map? query-params))
+       (p/rejected (ex-info "The provided query params are not valid" query-params))
+       (not (every? #(-> % name empty? not) (keys headers)))
+       (p/rejected (ex-info "The provided headers are not valid" headers))
+       :else
+       (let [;; And format the method e.g. :get instead of "GET"
+             method (-> http-method name lower-case keyword)
+             ;; if the body is meant to be json,
+             body (format-json-body-if-possible request)
+             ;; format headers so that header keys are strings
+             headers (util/map-keys name headers)
+             ;; if the proxy is requested, send the request first to the proxy server.
+             url (if proxy
+                   (str "http://apibot-proxy.herokuapp.com/" url)
+                   url)
+             ;; craft the promise
+             request-obj {:method       method
+                          :query-params query-params
+                          :url          url
+                          :headers      headers
+                          :body         body}
+
+             resp-promise (http/send! xhr/client request-obj)]
+
+         (-> resp-promise
+             ;; ensure the body is parsed from JSON
+             (p/then (fn [response]
+                       (-> response
+                           (parse-body-if-possible)
+                           (update :headers util/keywordize-keys))))))))))

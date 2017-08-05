@@ -6,40 +6,15 @@
     [clojure.tools.logging :as log]
     [compojure.api.sweet :refer :all]
     [ring.util.http-response :as response :refer :all]
+    [apibot.schemas :refer [User HttpRequest Graph HttpResponse]]
     [schema.core :as s]))
 
-(s/defschema User
-  {:id    (s/maybe s/Str)
-   :email s/Str})
-
-(s/defschema Edge
-  {:source s/Str
-   :target s/Str
-   :id     s/Str})
-
-(s/defschema Node
-  {:id       s/Str
-   :graph-id s/Str
-   :name     s/Str
-   :position {:x Double :y Double}
-   :props    {s/Keyword s/Any}
-   :type     s/Str})
-
-(s/defschema Graph
-  {:id                       s/Str
-   (s/optional-key :user-id) (s/maybe s/Str)
-   :desc                     s/Str
-   :edges                    [Edge]
-   :executable               s/Bool
-   :nodes                    [Node]
-   :name                     s/Str})
-
-(defapi service-routes
-  {:swagger {:ui   "/swagger-ui"
-             :spec "/swagger.json"
+(defapi api-graphs
+  {:swagger {:ui   "/swagger/graphs"
+             :spec "/swagger/graphs.json"
              :data {:info {:version     "1.0.0"
-                           :title       "Sample API"
-                           :description "Sample Services"}}}}
+                           :title       "Graphs API"
+                           :description "An API that deals with graphs"}}}}
 
   (context "/api/1" []
     :tags ["Root"]
@@ -50,28 +25,21 @@
       (when config/dev?
         (ok (db/purge-graphs))))
 
-    (PUT "/users" []
-      :return User
-      :body-params [user :- User]
-      :query-params [user-id :- s/Str]
-      :summary "Updates the current user"
-      (ok nil))
+    (context "/graphs" []
+      :tags ["Graphs"]
 
-    (context "/users/me" []
-      :tags ["Users"]
-
-      (GET "/graphs" []
+      (GET "/" []
         :return {:graphs [Graph]}
         :query-params [user-id :- s/Str]
         :summary "Returns all the graphs that belong to the current user."
         (ok {:graphs (db/find-graphs-by-user-id user-id)}))
 
-      (DELETE "/graphs" []
+      (DELETE "/" []
         :query-params [user-id :- s/Str ids :- s/Str]
         :summary "Returns all the graphs that belong to the current user."
         (ok {:removed (db/remove-graphs-by-id user-id (split ids #","))}))
 
-      (PUT "/graphs" []
+      (PUT "/" []
         :return {:graphs [Graph]}
         :body-params [graphs :- [Graph]]
         :summary "Sets a user's graphs"

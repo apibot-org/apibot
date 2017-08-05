@@ -232,7 +232,7 @@
                                                 (let [results (js->clj results)]
                                                   (if (empty? (:errors results))
                                                     (resolve (:data results))
-                                                    (reject (ex-info (str "Error when loading CSV file '" path "'")
+                                                    (reject (ex-info (str "Error when loading CSV file '" file "'")
                                                                      (:errors results))))))}))))))
 
 (defn read-csv-at-line

@@ -46,7 +46,7 @@
                 :apibot.error true
                 :apibot.el-error error))
             (fn [rendered-request]
-              (-> (http-request! rendered-request)
+              (-> (http-request! rendered-request {:proxy true})
                   (p/then
                     (fn [result]
                       ;; XXX apparently Httpur responds with status 0 on IO exceptions.

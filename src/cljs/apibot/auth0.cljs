@@ -3,7 +3,8 @@
   (:require
     [apibot.env :as env]
     [apibot.storage :as storage]
-    [promesa.core :as p]))
+    [promesa.core :as p]
+    [apibot.util :as util]))
 
 
 (def web-auth
@@ -19,7 +20,8 @@
   "Clears local storage and refreshes the browser thus killing all in-memory state."
   []
   (storage/clear)
-  (-> js/window .-location .reload))
+  (-> js/window .-location .reload)
+  (aset (-> js/window .-location) "href" "#"))
 
 (defn set-session
   [access-token expires-in]
@@ -37,22 +39,31 @@
       (.parseHash web-auth
                   (fn [err auth-result]
                     (println "Handle Auth:" err auth-result
-                      (cond
-                        ; Case #1: there is an auth result
-                        auth-result
-                        (let [access-token (.-accessToken auth-result)
-                              expires-in (.-expiresIn auth-result)]
-                          (set-session access-token expires-in)
-                          (resolve true))
+                             (cond
+                               ; Case #1: there is an auth result
+                               auth-result
+                               (let [access-token (.-accessToken auth-result)
+                                     expires-in (.-expiresIn auth-result)]
+                                 (set-session access-token expires-in)
+                                 (resolve access-token))
 
-                        ; Case #2: There was an error parsing the auth result
-                        err
-                        (reject (ex-info "Failed to authenticate" err))
+                               ; Case #2: There was an error parsing the auth result
+                               err
+                               (reject (ex-info "Failed to authenticate" err))
 
-                        ; Case #3: There was no auth result, skip silently
-                        :else
-                        (println "Not handling request since there was no auth-token"))))))))
+                               ; Case #3: There was no auth result, skip silently
+                               :else
+                               (println "Not handling request since there was no auth-token"))))))))
 
+(defn fetch-user-info [access-token]
+  (p/promise
+    (fn [resolve reject]
+      (.userInfo (.-client web-auth)
+                 access-token
+                 (fn [err user]
+                   (if err
+                     (reject (ex-info "Failed to fetch User info" err))
+                     (resolve (util/js->clj user))))))))
 
 (defn request-auth []
   (.authorize web-auth))

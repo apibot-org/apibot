@@ -1,23 +1,26 @@
 (ns apibot.handler
-  (:require [compojure.core :refer [routes wrap-routes]]
-            [apibot.layout :refer [error-page]]
-            [apibot.routes.services :refer [service-routes]]
-            [compojure.route :as route]
-            [apibot.env :refer [defaults]]
-            [mount.core :as mount]
-            [apibot.middleware :as middleware]))
+  (:require
+    [apibot.env :refer [defaults]]
+    [apibot.layout :refer [error-page]]
+    [apibot.middleware :as middleware]
+    [apibot.routes.services :refer [api-graphs]]
+    [apibot.routes.users :refer [api-users]]
+    [compojure.core :refer [routes wrap-routes]]
+    [compojure.route :as route]
+    [mount.core :as mount]))
 
 (mount/defstate init-app
-                :start ((or (:init defaults) identity))
-                :stop  ((or (:stop defaults) identity)))
+  :start ((or (:init defaults) identity))
+  :stop ((or (:stop defaults) identity)))
 
 (def app-routes
   (routes
-    #'service-routes
+    #'api-users
+    #'api-graphs
     (route/not-found
       (:body
         (error-page {:status 404
-                     :title "page not found"})))))
+                     :title  "page not found"})))))
 
 
 (defn app [] (middleware/wrap-base #'app-routes))

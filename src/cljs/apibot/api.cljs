@@ -12,11 +12,14 @@
     [secretary.core :as secretary]
     [apibot.state :as state]))
 
-(def *token (atom (storage/get-item :access-token "")))
+(defn token!
+  "Returns the access-token"
+  []
+  (storage/get-item :access-token nil))
 
 (defn token? []
   "True iff there is a token"
-  (not (empty? @*token)))
+  (not (empty? (token!))))
 
 (defn node->remote-node
   [{:keys [id graph-id name position props type]}]
@@ -41,20 +44,26 @@
      :name       (or name "")}))
 
 (defn api! [request]
-  (-> (assoc-in request [:headers :x-apibot-auth] @*token)
+  (-> (assoc-in request [:headers :x-apibot-auth] (token!))
       (http-request!)
       (p/then (fn [response]
                 (cond
                   (status/success? response)
                   response
                   (#{401 403} (:status response))
-                  (do (reset! *token nil)
-                      (storage/set-item :access-token nil)
-                      (secretary/dispatch! "/login")
+                  (do (storage/set-item :access-token nil)
+                      #_(-> js/window .-location .reload)
                       (throw (ex-info "Authentication Failed" response)))
                   :else
                   (throw (ex-info "HTTP response failed" response)))))))
 
+(defn upsert-user
+  "Upserts a user."
+  [user]
+  (api! {:http-method :put
+         :headers     {:content-type "application/json"}
+         :url         (str apibot-root "/users/me")
+         :body        {:user user}}))
 
 (defn fetch-graphs
   "Fires an HTTP request to return the current user's list of graphs.
@@ -63,7 +72,7 @@
   (p/then
     (api!
       {:http-method :get
-       :url         (str apibot-root "/users/me/graphs")})
+       :url         (str apibot-root "/graphs")})
     (fn [response]
       (->> (:body response)
            (:graphs)
@@ -81,7 +90,7 @@
     (api!
       {:http-method :put
        :body        {:graphs remote-graphs}
-       :url         (str apibot-root "/users/me/graphs")
+       :url         (str apibot-root "/graphs")
        :headers     {:content-type "application/json"}})))
 
 
@@ -91,7 +100,7 @@
   (if (not (empty? ids))
     (-> (api! {:http-method  :delete
                :query-params {:ids (s/join "," ids)}
-               :url          (str apibot-root "/users/me/graphs")})
+               :url          (str apibot-root "/graphs")})
         (p/then :body))
     (p/promise {:removed 0})))
 
