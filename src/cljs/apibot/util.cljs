@@ -246,8 +246,7 @@
 (defn url?
   "Returns true iff x is a valid URL"
   [x]
-  (try (new js/URL x)
-       true
+  (try (-> (new js/URL x) .-hostname empty? not)
        (catch js/Object _ false)))
 
 (defn throttle

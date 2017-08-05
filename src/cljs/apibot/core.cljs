@@ -10,6 +10,7 @@
     [apibot.views.editor :as editor]
     [apibot.views.executables :as executables]
     [apibot.views.execution :as execution]
+    [apibot.views.loading :as loading]
     [apibot.views.login :as login]
     [apibot.views.navbar :as navbar]
     [apibot.views.tasks-dialog :as tasks-dialog]
@@ -49,11 +50,19 @@
     {:style {:max-width "730px"}}
     [login/login *app-state]]])
 
+(defn loading-page [& args]
+  [:div {:style {:background "url('img/robo-pattern.jpeg')"
+                 :height "100vh"}}
+   [:div.container
+    {:style {:max-width "730px"}}
+    [loading/loading *app-state]]])
+
 (def pages
   {:editor      #'editor-page
    :executions  #'executions-page
    :executables #'executables-page
-   :login       #'login-page})
+   :login       #'login-page
+   :loading     #'loading-page})
 
 (defn page []
   [(pages (session/get :page))])

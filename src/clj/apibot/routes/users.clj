@@ -7,7 +7,7 @@
     [clojure.tools.logging :as log]
     [compojure.api.sweet :refer :all]
     [ring.util.http-response :as response :refer :all]
-    [apibot.schemas :refer [User HttpRequest Graph HttpResponse]]
+    [apibot.schemas :refer [User]]
     [schema.core :as s]))
 
 (defapi api-users
@@ -17,18 +17,15 @@
                            :title       "Users API"
                            :description "API for managing users"}}}}
 
-  (context "/api/1" []
-    :tags ["Root"]
+  (context "/api/1/users" []
+    :tags ["Users"]
 
-    (context "/users" []
-      :tags ["Users"]
-
-      (PUT "/me" []
-        :return User
-        :body-params [user :- User]
-        :query-params [user-id :- s/Str]
-        :summary "Updates the current user"
-        (-> (assoc user :user-id user-id)
-            (db.users/upsert)
-            (ok))))))
+    (PUT "/me" []
+      :return User
+      :body-params [user :- User]
+      :query-params [user-id :- s/Str]
+      :summary "Updates the current user"
+      (-> (assoc user :user-id user-id)
+          (db.users/upsert)
+          (ok)))))
 

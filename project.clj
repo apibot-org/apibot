@@ -12,7 +12,7 @@
    [compojure "1.6.0"]
    [cprop "0.1.10"]
    [funcool/cats "2.1.0"]
-   [funcool/httpurr "0.6.3"]
+   [funcool/httpurr "1.0.0"]
    [funcool/promesa "1.8.1"]
    [funcool/struct "1.0.0"]
    [hiccup "1.0.5"]
@@ -71,7 +71,7 @@
                {:source-paths ["src/cljc" "src/cljs" "env/prod/cljs"]
                 :compiler
                 {:output-to "target/cljsbuild/public/js/app.js"
-                 :optimizations :advanced
+                 :optimizations :simple
                  :pretty-print false
                  :closure-warnings
                  {:externs-validation :off :non-standard-jsdoc :off}

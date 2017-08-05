@@ -17,17 +17,18 @@
   ```
   "
   (:require
-    [secretary.core :as secretary]
-    [clojure.string :refer [starts-with?]]
-    [reagent.session :as session]
-    [goog.events :as events]
-    [apibot.auth0 :as auth0]
-    [apibot.views.dialogs :as dialogs]
     [apibot.api :as api]
+    [apibot.auth0 :as auth0]
     [apibot.mixpanel :as mixpanel]
     [apibot.state :as state :refer [*app-state]]
+    [apibot.views.dialogs :as dialogs]
+    [clojure.string :refer [starts-with?]]
+    [goog.events :as events]
     [goog.history.EventType :as HistoryEventType]
-    [promesa.core :as p])
+    [promesa.core :as p]
+    [reagent.session :as session]
+    [secretary.core :as secretary]
+    [apibot.raven :as raven])
   (:import goog.History))
 
 (declare goto-editor)
@@ -50,7 +51,7 @@
           (p/then (fn [{:keys [id email]}]
                     (mixpanel/set-user-id! id)
                     (mixpanel/set! {:$email email}))))
-      (session/put! :page :login)
+      (session/put! :page :loading)
       (-> (api/bootstrap! *app-state)
           (p/then #(session/put! :page page-name))
           (p/catch #(session/put! :page :login))))
@@ -61,10 +62,16 @@
       (-> (auth0/handle-auth)
           (p/then (fn [access-token]
                     (println "Authentication Succeeded! proceeding to " page-name)
+                    (mixpanel/track :ev-login-success)
                     (handle-request page-name)))
           (p/catch
             (fn [error]
-              (println "Error:" error)
+              (dialogs/show!
+                (dialogs/message-dialog
+                  "Authentication Failed"
+                  "Apibot failed to authenticate. Please try again."))
+              (raven/capture-exception error)
+              (mixpanel/track :ev-login-failed)
               (session/put! :page :login)))))))
 
 ;; ---- Routes ----
@@ -91,6 +98,10 @@
 (secretary/defroute
   "/login" []
   (session/put! :page :login))
+
+(secretary/defroute
+  "/loading" []
+  (session/put! :page :loading))
 
 (secretary/defroute
   "*" []

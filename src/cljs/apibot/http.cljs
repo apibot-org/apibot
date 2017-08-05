@@ -59,6 +59,22 @@
          (<= status-or-request 299))
     (ok? (:status status-or-request))))
 
+(defn proxy-if-needed
+  [url proxy?]
+  (let [hostname (-> (js/URL. url) .-hostname)
+        localhost? (contains? #{"localhost" "127.0.0.1"} hostname)]
+    (cond
+      ; Case #1: if trying to connect to localhost, don't proxy.
+      localhost?
+      url
+      ; Case #2: if a proxy has been requested, proxy the URL.
+      proxy?
+      (str "http://apibot-proxy.herokuapp.com/" url)
+      ; Case #3: if no proxy has been requested, then don't proxy.
+      :else
+      url)))
+
+
 (defn http-request!
   "
   http-method: either a string or keyword
@@ -89,9 +105,7 @@
              ;; format headers so that header keys are strings
              headers (util/map-keys name headers)
              ;; if the proxy is requested, send the request first to the proxy server.
-             url (if proxy
-                   (str "http://apibot-proxy.herokuapp.com/" url)
-                   url)
+             url (proxy-if-needed url proxy)
              ;; craft the promise
              request-obj {:method       method
                           :query-params query-params

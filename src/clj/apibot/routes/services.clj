@@ -6,7 +6,7 @@
     [clojure.tools.logging :as log]
     [compojure.api.sweet :refer :all]
     [ring.util.http-response :as response :refer :all]
-    [apibot.schemas :refer [User HttpRequest Graph HttpResponse]]
+    [apibot.schemas :refer [Graph]]
     [schema.core :as s]))
 
 (defapi api-graphs

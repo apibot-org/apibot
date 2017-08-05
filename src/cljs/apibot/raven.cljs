@@ -1,8 +1,7 @@
 (ns apibot.raven
   (:require [apibot.env :as env]))
 
-;; TODO!!!
-(def raven nil)
+(def raven js/Raven)
 
 (defn init!
   "Initializes the raven SDK"
