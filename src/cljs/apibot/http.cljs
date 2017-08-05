@@ -69,7 +69,7 @@
       url
       ; Case #2: if a proxy has been requested, proxy the URL.
       proxy?
-      (str "http://apibot-proxy.herokuapp.com/" url)
+      (str "https://apibot-proxy.herokuapp.com/" url)
       ; Case #3: if no proxy has been requested, then don't proxy.
       :else
       url)))
