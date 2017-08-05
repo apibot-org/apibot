@@ -1,0 +1,7 @@
+baseURL = "http://apibot.co/docs/"
+languageCode = "en-us"
+title = "Apibot | Write integration tests for your API"
+theme = "docdock"
+
+[outputs]
+home = [ "HTML", "RSS", "JSON"]
