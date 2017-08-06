@@ -54,8 +54,11 @@
          [:div.row
           {:style {:text-align "center"}}
           [:h2 "Welcome to Apibot"]
-          [:p "Check our getting started tutorial or browser the "
-           [:a {:href "http://apibot.co/docs/" :target "_blank"} "documentation."]]
+          [:p "Check our getting started tutorial, browser the "
+           [:a {:href "http://apibot.co/docs/" :target "_blank"} "documentation "]
+           "or"]
+          [:p
+           [toolbox/button-add-new-graph *app-state "Create a New Graph"]]
           [:iframe
            {:src             "https://player.vimeo.com/video/225732161"
             :width           "480"
