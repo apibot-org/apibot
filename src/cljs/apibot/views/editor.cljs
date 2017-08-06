@@ -52,13 +52,14 @@
        [:div.col-xs-10
         [:div
          [:div.row
+          {:style {:text-align "center"}}
           [:h2 "Welcome to Apibot"]
           [:p "Check our getting started tutorial or browser the "
            [:a {:href "http://apibot.co/docs/" :target "_blank"} "documentation."]]
           [:iframe
            {:src             "https://player.vimeo.com/video/225732161"
-            :width           "320"
-            :height          "240"
+            :width           "480"
+            :height          "360"
             :style           {:display "block" :margin "0 auto"}
             :frameBorder     "0"
             :allowFullScreen true}]]]])]))
