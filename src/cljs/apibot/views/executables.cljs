@@ -53,6 +53,7 @@
       (util/bind-promise! (cursor *app-state [:executions graph-id]) promise))))
 
 (defn export-results!
+  "TODO: implement this button!"
   [*executions])
 
 (defn execution-result-view
@@ -95,14 +96,14 @@
        "Retry failed"]
       [:button.btn.btn-default
        {:type     "button"
-        :title    "Clear all execution results."
-        :on-click (fn [e] (clear-non-pending-executions! *executions))}
-       "Clear results"]
-      [:button.btn.btn-default
-       {:type     "button"
         :style {:display "none"}
         :on-click (fn [e] (export-results! *executions))}
-       "Export Results"]]
+       "Export Results"]
+      [:button.btn.btn-default
+       {:type     "button"
+        :title    "Clear all execution results."
+        :on-click (fn [e] (clear-non-pending-executions! *executions))}
+       "Clear results"]]
      [:table.table.table-hover
       [:thead
        [:tr
