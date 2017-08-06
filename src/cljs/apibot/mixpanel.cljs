@@ -4,6 +4,8 @@
 
 (def mixpanel js/mixpanel)
 
+(.init mixpanel env/mixpanel-token)
+
 (defn track
   "Tracks the given event with the given data.
 
@@ -11,10 +13,9 @@
 
   (track :ev-registration-click {:email \"foo\"})"
   ([event-name data]
-   (when (= env/env :prod)
-     (.track mixpanel
-             (name event-name)
-             (clj->js data))))
+   (.track mixpanel
+           (name event-name)
+           (clj->js data)))
   ([event-name]
    (track event-name {})))
 

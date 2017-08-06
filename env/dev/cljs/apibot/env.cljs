@@ -12,4 +12,6 @@
 
 (def sentry-dsn "https://d91c1afa1f614562b24d2a1fed3c0769:8621af41110240e9aa2efa43322385e4@sentry.io/186706")
 
+(def mixpanel-token "db33c4c883e125a0f05c0e13932cac7c")
+
 (def apibot-root "http://localhost:3000/api/1") ;(def apibot-root "https://api-dev.apibot.co/api/1")

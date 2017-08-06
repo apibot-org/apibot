@@ -52,9 +52,12 @@
                     (mixpanel/set-user-id! id)
                     (mixpanel/set! {:$email email}))))
       (session/put! :page :loading)
+      (mixpanel/track :ev-bootstrap-init)
       (-> (api/bootstrap! *app-state)
-          (p/then #(session/put! :page page-name))
-          (p/catch #(session/put! :page :login))))
+          (p/then (mixpanel/trackfn :ev-bootstrap-success
+                                    #(session/put! :page page-name)))
+          (p/catch (mixpanel/trackfn :ev-bootstrap-failed
+                                     #(session/put! :page :login)))))
 
     :else
     (do
@@ -79,32 +82,33 @@
 
 (secretary/defroute
   "/" []
-  (println "Loading root. Authenticated? " (auth0/authenticated?))
+  (mixpanel/track :ev-page-root)
   (handle-request :editor))
 
 (secretary/defroute
   "/editor" []
+  (mixpanel/track :ev-page-editor)
   (handle-request :editor))
 
 (secretary/defroute
   "/executions/:graph-id" [graph-id]
+  (mixpanel/track :ev-page-executions)
   (session/put! :graph-id graph-id)
   (handle-request :executions))
 
 (secretary/defroute
   "/executables" []
+  (mixpanel/track :ev-page-executables)
   (handle-request :executables))
 
 (secretary/defroute
   "/login" []
+  (mixpanel/track :ev-page-login)
   (session/put! :page :login))
 
 (secretary/defroute
-  "/loading" []
-  (session/put! :page :loading))
-
-(secretary/defroute
   "*" []
+  (mixpanel/track :ev-page-unknown {:hash (-> js/window .-location .-hash)})
   (println "Handle *")
   (handle-request :editor))
 

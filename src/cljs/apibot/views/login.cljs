@@ -20,10 +20,5 @@
     [:p
      [:button.btn.btn-success.btn-lg
       {:on-click (trackfn :ev-login-login #(auth0/request-auth))}
-      "Login"]
-     " or "
-     [:button.btn.btn-success.btn-lg
-      {:on-click (trackfn :ev-login-signup #(auth0/request-auth))}
-      "Sign-up"]]]])
-
+      "Login or Sign-up"]]]])
 

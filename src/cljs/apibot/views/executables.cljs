@@ -100,6 +100,7 @@
        "Clear results"]
       [:button.btn.btn-default
        {:type     "button"
+        :style {:display "none"}
         :on-click (fn [e] (export-results! *executions))}
        "Export Results"]]
      [:table.table.table-hover

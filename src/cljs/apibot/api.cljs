@@ -43,7 +43,12 @@
      :nodes      (map node->remote-node nodes)
      :name       (or name "")}))
 
-(defn api! [request]
+(defn api!
+  "Makes an HTTP request and appends the x-apibot-auth token.
+  If the response is 2xx it is returned.
+  Otherwise an exception is thrown.
+  "
+  [request]
   (-> (assoc-in request [:headers :x-apibot-auth] (token!))
       (http-request!)
       (p/then (fn [response]
@@ -60,10 +65,11 @@
 (defn upsert-user
   "Upserts a user."
   [user]
-  (api! {:http-method :put
-         :headers     {:content-type "application/json"}
-         :url         (str apibot-root "/users/me")
-         :body        {:user user}}))
+  (-> (api! {:http-method :put
+             :headers     {:content-type "application/json"}
+             :url         (str apibot-root "/users/me")
+             :body        {:user user}})
+      (p/then :body)))
 
 (defn fetch-graphs
   "Fires an HTTP request to return the current user's list of graphs.

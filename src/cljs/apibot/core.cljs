@@ -3,7 +3,10 @@
     [apibot.api :as api]
     [apibot.auth0 :as auth0]
     [apibot.grexec :as grexec]
+    [apibot.mixpanel :as mixpanel]
     [apibot.raven :as raven]
+    [apibot.router :as router]
+    [apibot.state :refer [*app-state]]
     [apibot.storage :as storage]
     [apibot.util :as util]
     [apibot.views.dialogs :as dialogs]
@@ -15,12 +18,10 @@
     [apibot.views.navbar :as navbar]
     [apibot.views.tasks-dialog :as tasks-dialog]
     [cljsjs.papaparse]
-    [apibot.state :refer [*app-state]]
     [promesa.core :as p]
     [reagent.core :as reagent :refer [atom cursor]]
     [reagent.session :as session]
-    [secretary.core :as secretary :include-macros true]
-    [apibot.router :as router]))
+    [secretary.core :as secretary :include-macros true]))
 
 ;; ---- Views ----
 
@@ -76,6 +77,7 @@
     (.getElementById js/document "app")))
 
 (defn init! []
+  (mixpanel/track :ev-app-load)
   (util/reset-in! *app-state [:graphs] grexec/graphs)
   (router/hook-browser-navigation!)
   (mount-components))
