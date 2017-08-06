@@ -27,27 +27,17 @@
                              :max-height "calc(100vh - 51px)"}}
       [stencil/stencil *app-state]]
 
-     ;; The Paper
-     [:div.col-xs-7
-      [:div
-       [:div.row
-        [toolbox/toolbox *app-state]]]
-      (if *selected-graph
-        [:div.row {:style {:height           "calc(100vh - 34px - 51px)"
-                           :padding          "0px"
-                           :background-color "#eeeeee"}}
-         [paper-view *selected-graph]]
+     (when *selected-graph
+       ;; The Paper
+       [:div.col-xs-7
         [:div
-         [:h2 "Welcome to Apibot"]
-         [:p "Check our getting started tutorial or browser the "
-          [:a {:href "http://apibot.co/docs/" :target "_blank"} "documentation."]]
-         [:iframe
-          {:src             "https://player.vimeo.com/video/225732161"
-           :width           "640"
-           :style           {:display "block" :margin "0 auto"}
-           :height          "480"
-           :frameBorder     "0"
-           :allowFullScreen true}]])]
+         [:div.row
+          [toolbox/toolbox *app-state]]]
+        (when *selected-graph
+          [:div.row {:style {:height           "calc(100vh - 34px - 51px)"
+                             :padding          "0px"
+                             :background-color "#eeeeee"}}
+           [paper-view *selected-graph]])])
 
      ;; The inspector
      (when *selected-graph
@@ -56,4 +46,19 @@
                  :overflow-y    "overlay"
                  :overflow-x    "hidden"
                  :max-height    "calc(100vh - 51px)"}}
-        [inspector/inspector *app-state *selected-graph]])]))
+        [inspector/inspector *app-state *selected-graph]])
+
+     (when-not *selected-graph
+       [:div.col-xs-10
+        [:div
+         [:div.row
+          [:h2 "Welcome to Apibot"]
+          [:p "Check our getting started tutorial or browser the "
+           [:a {:href "http://apibot.co/docs/" :target "_blank"} "documentation."]]
+          [:iframe
+           {:src             "https://player.vimeo.com/video/225732161"
+            :width           "320"
+            :height          "240"
+            :style           {:display "block" :margin "0 auto"}
+            :frameBorder     "0"
+            :allowFullScreen true}]]]])]))

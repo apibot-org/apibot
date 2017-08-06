@@ -10,7 +10,7 @@
   [:a
    {:href (str "http://apibot.co/docs/graphs/" (name graph-name))
     :target "_blank"}
-   [:span.glyphicon.glyphicon-education {:aria-hidden true}] " Documentation"])
+   [:span.glyphicon.glyphicon-education {:aria-hidden true}] " Docs for " graph-name])
 
 (defn glyphicon-run []
   [:span.glyphicon.glyphicon-flash
