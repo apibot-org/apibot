@@ -234,6 +234,9 @@
          (when (not= (:id @*old-graph) (:id @*new-graph))
            (swapr! *new-graph graphs/unselect-nodes)
            (.fit @cy))
+
+         (when (graphs/singleton? @*new-graph)
+           (.fit @cy))
          ;; return false indicating that this component doesn't need to update
          false)
 
