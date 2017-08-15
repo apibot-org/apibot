@@ -3,14 +3,14 @@
     [apibot.env :as env :refer [apibot-root]]
     [apibot.graphs :as graphs]
     [apibot.http :refer [http-request!]]
+    [apibot.state :as state]
     [apibot.storage :as storage]
     [apibot.util :as util]
     [clojure.string :as s]
     [httpurr.status :as status]
     [promesa.core :as p]
     [reagent.core :refer [cursor]]
-    [secretary.core :as secretary]
-    [apibot.state :as state]))
+    [secretary.core :as secretary]))
 
 (defn token!
   "Returns the access-token"
@@ -135,7 +135,9 @@
               (swap! *graphs
                      (fn [existing-graphs loaded-graphs]
                        (->> (filter #(not (graphs/editable? %)) existing-graphs)
-                            (concat loaded-graphs)
+                            (concat (if (empty? loaded-graphs)
+                                      state/samples
+                                      loaded-graphs))
                             (into [])))
                      graphs)
 

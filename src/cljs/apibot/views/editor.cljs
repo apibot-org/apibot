@@ -29,7 +29,7 @@
 
      (when *selected-graph
        ;; The Paper
-       [:div.col-xs-7
+       [:div.col-xs-6
         [:div
          [:div.row
           [toolbox/toolbox *app-state]]]
@@ -41,7 +41,7 @@
 
      ;; The inspector
      (when *selected-graph
-       [:div.col-xs-3
+       [:div.col-xs-4
         {:style {:padding-right "20px"
                  :overflow-y    "overlay"
                  :overflow-x    "hidden"
