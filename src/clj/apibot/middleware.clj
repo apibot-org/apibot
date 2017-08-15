@@ -11,6 +11,7 @@
     [ring.middleware.anti-forgery :refer [wrap-anti-forgery]]
     [ring.middleware.defaults :refer [site-defaults wrap-defaults]]
     [ring.middleware.flash :refer [wrap-flash]]
+    [ring.middleware.gzip :refer [wrap-gzip]]
     [ring.middleware.webjars :refer [wrap-webjars]])
   (:import [javax.servlet ServletContext]
            (com.auth0.jwt JWTVerifier)
@@ -102,5 +103,6 @@
             (dissoc :session)))
       wrap-context
       wrap-internal-error
+      wrap-gzip
       wrap-logger))
 

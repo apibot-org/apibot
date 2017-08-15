@@ -16,3 +16,4 @@ log/
 apibot.iml
 .idea/
 figwheel_server.log
+node_modules/

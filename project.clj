@@ -4,7 +4,10 @@
   :url "https://apibot.co"
 
   :dependencies
-  [[cljsjs/papaparse "4.1.1-1"]
+  [;
+   [amalloy/ring-gzip-middleware "0.1.3"]
+   [clj-time "0.13.0"]
+   [cljsjs/papaparse "4.1.1-1"]
    [com.auth0/java-jwt "3.2.0"]
    [com.auth0/jwks-rsa "0.2.0"]
    [com.google.guava/guava "20.0"]
@@ -38,8 +41,7 @@
    [ring/ring-core "1.6.1"]
    [ring/ring-defaults "0.3.0"]
    [secretary "1.2.3"]
-   [selmer "1.10.7"]
-   [clj-time "0.13.0"]]
+   [selmer "1.10.7"]]
 
   :min-lein-version "2.0.0"
 
@@ -60,7 +62,7 @@
    :nrepl-port 7002
    :css-dirs ["resources/public/css"]
    :nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}
-  
+
 
   :profiles
   {:uberjar {:omit-source true
@@ -93,10 +95,10 @@
                                  [binaryage/devtools "0.9.4"]
                                  [com.cemerick/piggieback "0.2.2-SNAPSHOT"]
                                  [doo "0.1.7"]
-                                 [figwheel-sidecar "0.5.10"]]
+                                 [figwheel-sidecar "0.5.12"]]
                   :plugins      [[com.jakemccrary/lein-test-refresh "0.19.0"]
                                  [lein-doo "0.1.7"]
-                                 [lein-figwheel "0.5.10"]
+                                 [lein-figwheel "0.5.12"]
                                  [org.clojure/clojurescript "1.9.562"]]
                   :cljsbuild
                   {:builds
@@ -120,6 +122,8 @@
                   :repl-options {:init-ns user}
                   :injections [(require 'pjstadig.humane-test-output)
                                (pjstadig.humane-test-output/activate!)]}
+
+
    :project/test {:resource-paths ["env/test/resources"]
                   :cljsbuild
                   {:builds

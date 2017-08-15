@@ -97,6 +97,21 @@
   [*value ks v]
   (swap! *value assoc-in ks v))
 
+(defn swap-in!
+  "Equivalent to swap! but takes a set of keys as the path to where the value will be set.
+
+  Example:
+  ```
+  (def x (atom {:foo {:bar 1}}))
+  (swap-in! x [:foo :bar] + 1 1)
+  ;; x == {:foo {:bar 3}}
+  ```"
+  [*value ks f & args]
+  (swap! *value
+         (fn [value ks f args]
+           (apply update-in value ks f args))
+         ks f args))
+
 (defn get-nested
   "Similar to (get-in m ks) but takes a vector of functions instead
   of a vector of keys thus being more generic.
@@ -190,6 +205,10 @@
   ([message x]
    (println message)
    (pprint x)))
+
+(defn log [& args]
+  (let [log (-> js/console .-log)]
+    (apply log args)))
 
 (defn error [message]
   (.error js/console message))
