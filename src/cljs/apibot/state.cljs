@@ -7,7 +7,7 @@
 
 (def sample-fetch-luke-skywalker
   (graphs/map->CustomGraph
-    {:id         "sample-fetch-luke-skywalker-0"
+    {:id         (graphs/uuid!)
      :name       "sample: fetch luke skywalker"
      :desc       "This sample graph shows the basics of making an HTTP request and asserting over the HTTP response."
      :executable true
@@ -43,7 +43,7 @@
 
 (def sample-fetch-dagobah
   (graphs/map->CustomGraph
-    {:id        "sample-fetch-dagobah-0"
+    {:id        (graphs/uuid!)
      :desc       "This sample graph shows you how to chain requests and extract content from the request to create powerful assertions."
      :name       "sample: fetch dagobah"
      :executable true
