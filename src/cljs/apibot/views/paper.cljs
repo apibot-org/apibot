@@ -6,7 +6,9 @@
     [apibot.mixpanel :refer [track]]
     [apibot.util :refer [swapr!]]
     [apibot.views.commons :refer [subscribe unsubscribe]]
-    [reagent.core :as reagent :refer [atom create-class props]]))
+    [reagent.core :as reagent :refer [atom create-class props]]
+    [apibot.util :as util]
+    [apibot.views.dialogs :as dialogs]))
 
 ;; ---- Model ----
 
@@ -95,7 +97,7 @@
 ;; ---- Context Menu Configuration ----
 (defn cxt-config [cy selected-graph]
   {:menuRadius          80                                  ;; the radius of the circular menu in pixels
-   :selector            "node"                              ;; elements matching this Cytoscape.js selector will trigger cxtmenus
+   :selector            "node, edge"                        ;; elements matching this Cytoscape.js selector will trigger cxtmenus
    :commands
                         [{:content "Remove"
                           :select
@@ -108,22 +110,32 @@
                           :select
                                    (fn [ele]
                                      (track :ev-paper-clone)
-                                     (let [node (duplicate-node ele)]
-                                       (.add @cy node)
-                                       (send-graph-updates cy selected-graph)))}
+                                     (if (= "nodes" (.group ele))
+                                       (let [node (duplicate-node ele)]
+                                         (.add @cy node)
+                                         (send-graph-updates cy selected-graph))
+                                       (dialogs/show!
+                                         (dialogs/message-dialog
+                                           "Oopsie!"
+                                           "You were trying to clone an edge but only nodes can be cloned."))))}
 
                          {:content "Disconnect"
                           :select
                                    (fn [ele]
                                      (track :ev-paper-disconnect)
-                                     (let [edges (find-edges (fn [{:keys [source target]}]
-                                                               (or (= source (.id ele))
-                                                                   (= target (.id ele))))
-                                                             @@selected-graph)
-                                           edge-ids (map :id edges)]
-                                       (doseq [edge-id edge-ids]
-                                         (.remove @cy (str "#" edge-id)))
-                                       (send-graph-updates cy selected-graph)))}]
+                                     (if (= "nodes" (.group ele))
+                                       (let [edges (find-edges (fn [{:keys [source target]}]
+                                                                 (or (= source (.id ele))
+                                                                     (= target (.id ele))))
+                                                               @@selected-graph)
+                                             edge-ids (map :id edges)]
+                                         (doseq [edge-id edge-ids]
+                                           (.remove @cy (str "#" edge-id)))
+                                         (send-graph-updates cy selected-graph))
+                                       (dialogs/show!
+                                         (dialogs/message-dialog
+                                           "Oopsie!"
+                                           "You were trying to disconnect an edge but only nodes can be disconnected."))))}]
 
    ;; the background colour of the menu
    :fillColor           "rgba(51, 51, 51, 0.75)"
