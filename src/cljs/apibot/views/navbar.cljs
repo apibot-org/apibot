@@ -21,8 +21,7 @@
        (when (= :dev env/env)
          [:li
           [:a.navbar-brand
-           {
-            :on-click (fn [e])}
+           {:on-click (fn [e])}
            " Apibot DEV"]])
 
        [:li {:class (active-class-if-page "#editor")}
@@ -33,7 +32,13 @@
        [:li {:class (active-class-if-page "#executables")}
         [:a
          {:href "#executables"}
-         [:span.glyphicon.glyphicon-flash {:aria-hidden "true"}] " Executables"]]]
+         [:span.glyphicon.glyphicon-flash {:aria-hidden "true"}] " Executables"]]
+
+       [:li
+        [:a
+         {:href "http://apibot.co/docs"
+          :target "_blank"}
+         [:span.glyphicon.glyphicon-education {:aria-hidden "true"}] " Documentation"]]]
 
       [:ul.nav.navbar-nav.navbar-right
        [:li
