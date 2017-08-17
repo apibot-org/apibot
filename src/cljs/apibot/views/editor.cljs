@@ -36,13 +36,17 @@
         (when *selected-graph
           [:div.row {:style {:height           "calc(100vh - 34px - 51px)"
                              :padding          "0px"
-                             :background-color "#eeeeee"}}
+                             :margin-left      "-13px"
+                             :background-color "#eeeeee"
+                             :border           "1px solid #ddd"
+                             :border-radius    "4px"}}
            [paper-view *selected-graph]])])
 
      ;; The inspector
      (when *selected-graph
        [:div.col-xs-4
         {:style {:padding-right "20px"
+                 :padding-top   "13px"
                  :overflow-y    "overlay"
                  :overflow-x    "hidden"
                  :max-height    "calc(100vh - 51px)"}}

@@ -85,6 +85,7 @@
     [:div.list-group
      {:style {:overflow-x "hidden"
               :overflow-y "overlay"
+              :margin-top "2px"
               :margin-bottom "0px"
               :max-height "calc(100vh - 51px - 36px)"}}
 

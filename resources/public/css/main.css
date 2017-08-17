@@ -7,8 +7,8 @@
  padding: 2px;
 }
 
-*:focus {
-  outline: none;
+button:focus {
+  outline:0 !important;
 }
 
 ::-webkit-scrollbar {

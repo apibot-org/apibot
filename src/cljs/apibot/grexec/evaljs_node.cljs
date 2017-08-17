@@ -25,7 +25,7 @@
 (def graph
   (map->NativeGraph
     {:id       "evaljs"
-     :name     "JS Eval"
+     :name     "Eval JavaScript"
      :desc     "Evaluates JavaScript"
      :execfunc (executors/wrap-with-try-catch execute executors/on-js-error)
      :spec     nil}))

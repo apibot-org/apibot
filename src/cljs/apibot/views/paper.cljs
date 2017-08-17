@@ -3,8 +3,8 @@
   cytoscape's javascript integration"
   (:require
     [apibot.graphs :as graphs :refer [graph->cytoscape find-edges]]
-    [apibot.util :refer [swapr!]]
     [apibot.mixpanel :refer [track]]
+    [apibot.util :refer [swapr!]]
     [apibot.views.commons :refer [subscribe unsubscribe]]
     [reagent.core :as reagent :refer [atom create-class props]]))
 
@@ -77,7 +77,8 @@
     "style"    {"background-color" "#6AA"}}
    {"selector" "edge"
     "css"      {"target-arrow-shape" "triangle"
-                "curve-style"        "bezier"}}])
+                "curve-style"        "bezier"
+                "background-color"   "#9d9d9d"}}])
 
 (def layout
   {"name" "preset"})
@@ -125,10 +126,10 @@
                                        (send-graph-updates cy selected-graph)))}]
 
    ;; the background colour of the menu
-   :fillColor           "rgba(0, 0, 0, 0.75)"
+   :fillColor           "rgba(51, 51, 51, 0.75)"
 
    ;; the colour used to indicate the selected command
-   :activeFillColor     "rgba(92, 194, 237, 0.75)"
+   :activeFillColor     "rgba(51, 122, 183, 0.75)"
 
    ;; additional size in pixels for the active command
    :activePadding       5
@@ -149,7 +150,7 @@
    :maxSpotlightRadius  38
 
    ;; space-separated cytoscape events that will open the menu; only `cxttapstart` and/or `taphold` work here
-   :openMenuEvents      "cxttapstart taphold"
+   :openMenuEvents      "taphold"
 
    ;; the colour of text in the command's content
    :itemColor           "white"
@@ -163,20 +164,32 @@
    ;; draw menu at mouse position
    :atMouse             false})
 
+(defn image-from-url [url]
+  (let [img (new js/Image url)]
+    (aset img "src" url)
+    (aset img "width" 8)
+    (aset img "height" 8)
+    img))
+
 ;; ---- Edge Handles Plugin Configuration ----
 (defn edgehandles-config [cy selected-graph]
   {;; If you hover over a node and then leave the node, don't create an edge.
-   :toggleOffOnLeave true
+   :toggleOffOnLeave   true
 
    ;; Where should the edgehandle be drawn?
-   :handlePosition   "middle bottom"
+   :handlePosition     "middle bottom"
+   :handleIcon         (image-from-url "/img/move.svg")
+
+   :handleColor        "#337ab7"
+   :handleOutlineColor "#2e6da4"
+   :handleOutlineWidth 1
 
    ;; for the specified node, return whether edges from itself to itself are allowed
-   :loopAllowed      (fn [node] false)
+   :loopAllowed        (fn [node] false)
 
    ;; this handler is executed when the edge is susccessfuly added
-   :complete         (fn [source-node target-node added-entities]
-                       (send-graph-updates cy selected-graph))})
+   :complete           (fn [source-node target-node added-entities]
+                         (send-graph-updates cy selected-graph))})
 
 ;; ---- Initialize the Cytoscape Graph ----
 
@@ -190,6 +203,10 @@
 
     ;; Register an on select node handler
     (.on cyto "select" "node"
+         (fn [e]
+           (send-graph-updates cy selected-graph)))
+
+    (.on cyto "select" "edge"
          (fn [e]
            (send-graph-updates cy selected-graph)))
 
