@@ -132,10 +132,9 @@
                                          (doseq [edge-id edge-ids]
                                            (.remove @cy (str "#" edge-id)))
                                          (send-graph-updates cy selected-graph))
-                                       (dialogs/show!
-                                         (dialogs/message-dialog
-                                           "Oopsie!"
-                                           "You were trying to disconnect an edge but only nodes can be disconnected."))))}]
+                                       (do
+                                         (.remove @cy (str "#" (.id ele)))
+                                         (send-graph-updates cy selected-graph))))}]
 
    ;; the background colour of the menu
    :fillColor           "rgba(51, 51, 51, 0.75)"
