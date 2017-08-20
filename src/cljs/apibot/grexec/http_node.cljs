@@ -9,7 +9,8 @@
     [clojure.string :refer [lower-case includes?]]
     [httpurr.client :as http]
     [httpurr.client.xhr :as xhr]
-    [promesa.core :as p]))
+    [promesa.core :as p]
+    [clojure.string :as str]))
 
 ;; ---- Specs ----
 
@@ -24,7 +25,8 @@
   (s/keys :req [::http-method
                 ::url
                 ::body
-                ::headers]))
+                ::headers
+                ::query-params]))
 
 ;; ---- API ----
 
@@ -78,3 +80,46 @@
      :desc     "Makes an HTTP Request"
      :execfunc execute
      :spec     nil}))
+
+;; ---- Swagger Import ----
+
+(defn- parse-swagger-url
+  [url]
+  (-> (str url)
+      (str/replace #"\{\w+\}" (fn [m] (str "$" m)))
+      (str/replace-first #":" "${root}")))
+
+(defn- parse-swagger-http-method [swagger-http-method]
+  (-> swagger-http-method name str/upper-case))
+
+(defn- parse-swagger-http-headers
+  [{:keys [consumes]}]
+  (if-let [content-type (first consumes)]
+    [{:key "content-type" :val content-type}]
+    []))
+
+(defn- parse-swagger-query-params
+  [parameters]
+  (->> parameters
+       (filter #(= (:in %) "query"))
+       (map (fn [{:keys [name default]}]
+              {:key name
+               :val (or default "")}))
+       (into [])))
+
+(defn parse-swagger
+  [swagger-struct]
+  (->> (get-in swagger-struct [:paths])
+       (map identity)
+       (map (fn [[root-url map-verb-to-endpoint]]
+              (map (fn [[http-method endpoint]]
+                     [root-url http-method endpoint])
+                   map-verb-to-endpoint)))
+       (apply concat)
+       (map (fn [[root-url verb endpoint]]
+              (let [{:keys [parameters]} endpoint]
+                {:url (parse-swagger-url root-url)
+                 :http-method (parse-swagger-http-method verb)
+                 :query-params (parse-swagger-query-params parameters)
+                 :body ""
+                 :headers (parse-swagger-http-headers endpoint)})))))

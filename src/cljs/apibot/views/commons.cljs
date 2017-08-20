@@ -8,7 +8,7 @@
 
 (defn link-docs [graph-name]
   [:a
-   {:href (str "http://apibot.co/docs/graphs/" (name graph-name))
+   {:href   (str "http://apibot.co/docs/graphs/" (name graph-name))
     :target "_blank"}
    [:span.glyphicon.glyphicon-education {:aria-hidden true}] " Docs for " graph-name])
 
@@ -17,6 +17,18 @@
    {:aria-hidden "true"
     :style       {:color       "#DFBA69"
                   :text-shadow "1px 1px rgba(255,255,255,0.3)"}}])
+
+(defn button-swagger [props text]
+  []
+  [:button.btn.btn-success
+   (merge {:type  "button"
+           :style {:background-image    "url('img/logo-swagger.png')"
+                   :background-repeat   "no-repeat"
+                   :padding-left        "36px"
+                   :background-size     "25px"
+                   :background-position "4px 3px"}}
+          props)
+   text])
 
 (defn promise-view
   "Displays progress on a promise. Updates itself when the promise is done.
