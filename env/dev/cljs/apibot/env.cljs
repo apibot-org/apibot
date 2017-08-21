@@ -10,7 +10,7 @@
 (def auth0-redirect-uri "http://localhost:3000/index.html")
 (def auth0-audience "https://api-dev.apibot.co")
 
-(def sentry-dsn "https://d91c1afa1f614562b24d2a1fed3c0769:8621af41110240e9aa2efa43322385e4@sentry.io/186706")
+(def sentry-dsn "https://d2ccc1a99cd94154a219f663c75cf2c9:031f0f6f228945f280d08a73ef0768a5@sentry.io/192134")
 
 (def mixpanel-token "db33c4c883e125a0f05c0e13932cac7c")
 
