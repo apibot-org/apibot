@@ -3,7 +3,7 @@
   (:require
     [apibot.graphs :as graphs :refer [label remove-graph]]
     [apibot.grexec :as grexec]
-    [apibot.util :as util]
+    [apibot.coll :as coll]
     [apibot.views.commons :refer [form-group-bindable glyphicon-run]]
     [apibot.views.dialogs :as dialogs]
     [reagent.core :refer [cursor]]))
@@ -45,7 +45,7 @@
                    (let [*graphs (cursor *app-state [:graphs])]
                      (reset! *graphs
                              (remove-graph @*graph @*graphs)))))))}
-    "Delete '" (util/limit-string (label @*graph) 20 "...") "'"]
+    "Delete '" (coll/limit-string (label @*graph) 20 "...") "'"]
 
    (when (not (graphs/loopless? @*graph))
      [:div.alert.alert-warning {:role "alert"}

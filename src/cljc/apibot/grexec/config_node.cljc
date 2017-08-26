@@ -1,9 +1,9 @@
 (ns apibot.grexec.config-node
   (:require
+    #?(:cljs [cljs.spec.alpha :as s] :clj [clojure.spec.alpha :as s])
     [apibot.el :as el]
     [apibot.graphs :refer [map->NativeGraph]]
-    [apibot.util :refer [key-val-headers->map keywordize-keys]]
-    [cljs.spec.alpha :as s]
+    [apibot.coll :refer [key-vals->map keywordize-keys]]
     [promesa.core :as p]))
 
 ;; ---- Spec ----
@@ -19,7 +19,7 @@
 (defn execute
   [node scope]
   (p/promise
-    (merge scope (-> node :props :config key-val-headers->map keywordize-keys))))
+    (merge scope (-> node :props :config key-vals->map keywordize-keys))))
 
 (def graph
   (map->NativeGraph

@@ -1,7 +1,7 @@
 (ns apibot.db.core
   (:require
     [apibot.config :refer [env]]
-    [apibot.util :as util]
+    [apibot.coll :as coll]
     [monger.collection :as mc]
     [monger.core :as mg]
     [monger.operators :refer [$set $in]]
@@ -17,7 +17,7 @@
 
 (defn normalize-mongo-id
   [document]
-  (-> (util/rename-key document :_id :id)
+  (-> (coll/rename-key document :_id :id)
       (update :id str)))
 
 (defn ^String object-id [^String string]

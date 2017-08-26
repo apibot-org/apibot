@@ -4,6 +4,7 @@
     [apibot.exec-history :as exec-history]
     [apibot.graphs :as graphs]
     [apibot.util :as util]
+    [apibot.coll :as coll]
     [apibot.router :as router]
     [apibot.views.tree :as tree]
     [clojure.string :refer [starts-with?]]
@@ -13,7 +14,7 @@
 
 (defn exclude-apibot-keys
   [scope]
-  (util/dissoc-if (fn [[k _]] (starts-with? (name k) "apibot.")) scope))
+  (coll/dissoc-if (fn [[k _]] (starts-with? (name k) "apibot.")) scope))
 
 ;; ---- Views ----
 

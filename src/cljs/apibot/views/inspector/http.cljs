@@ -3,7 +3,7 @@
   (:require
     [apibot.grexec.http-node :as http-node]
     [apibot.storage :as storage]
-    [apibot.util :refer [remove-element-at]]
+    [apibot.coll :as coll :refer [remove-element-at]]
     [apibot.views.code-editor :refer [create-editor]]
     [apibot.views.commons :as commons :refer [form-group-bindable input-bindable cursor-vec]]
     [apibot.views.dialogs :as dialogs]
@@ -66,7 +66,7 @@
                            props (select-keys endpoint [:http-method :url :headers :body :query-params])]
                        [:button.list-group-item
                         {:key      (str http-method "-" url)
-                         :on-click #(do (util/reset-in! *node [:props] props)
+                         :on-click #(do (coll/reset-in! *node [:props] props)
                                         (dialogs/hide!))}
                         http-method " " url])))
               (doall))]]

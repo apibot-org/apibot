@@ -1,6 +1,6 @@
 (ns apibot.el
   (:require
-    [apibot.util :refer [get-nested]]
+    [apibot.coll :as coll]
     [cats.monad.either :refer [right left branch]]
     [clojure.string :refer [ends-with?]]
     [clojure.walk :refer [postwalk]]))
@@ -8,7 +8,8 @@
 ;; ---- Util Functions ----
 
 (defn parse-int [str]
-  (js/parseInt str))
+  #?(:cljs (js/parseInt str)
+     :clj  (Integer/parseInt str)))
 
 (defn get-by-num
   [num]
@@ -25,7 +26,7 @@
        (map #(if (re-find #"^\d+$" %)
                (get-by-num (parse-int %))
                (get-by-str-or-kw %)))
-       (get-nested context)))
+       (coll/get-nested context)))
 
 ;; ---- Template Functions ----
 
@@ -89,9 +90,9 @@
           (fn [inner]
             (if (string? inner)
               (branch (render-str inner context)
-                      #(throw (left %))
+                      #(throw (ex-info "Error when rendering string" (left %)))
                       identity)
               inner))
           x))
-      (catch cats.monad.either.Left e
-        e))))
+      (catch #?(:clj RuntimeException :cljs ExceptionInfo) e
+        (ex-data e)))))

@@ -1,7 +1,6 @@
 (ns apibot.db.users
   (:require
     [monger.collection :as coll]
-    [apibot.util :as util]
     [apibot.db.core :as db.core :refer [db]]))
 
 (defn deserialize-user [user]

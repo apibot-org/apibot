@@ -19,6 +19,7 @@
   (fn [node scope]
     (try
       (executor node scope)
-      (catch :default e
+      (catch #?(:cljs :default
+                :clj Exception) e
         (println "Error:" e)
         (on-error node scope e)))))

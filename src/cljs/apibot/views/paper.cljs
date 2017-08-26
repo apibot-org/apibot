@@ -4,10 +4,9 @@
   (:require
     [apibot.graphs :as graphs :refer [graph->cytoscape find-edges]]
     [apibot.mixpanel :refer [track]]
-    [apibot.util :refer [swapr!]]
+    [apibot.coll :refer [swapr!]]
     [apibot.views.commons :refer [subscribe unsubscribe]]
     [reagent.core :as reagent :refer [atom create-class props]]
-    [apibot.util :as util]
     [apibot.views.dialogs :as dialogs]))
 
 ;; ---- Model ----

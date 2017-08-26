@@ -3,14 +3,14 @@
   (:require
     [apibot.graphs :refer [map->NativeGraph]]
     [apibot.grexec.executors :as executors]
-    [apibot.util :as util]
+    [apibot.grexec.eval :as eval]
     [promesa.core :as p]))
 
 ;; ---- API ----
 
 (defn execute
   [node scope]
-  (let [func (-> node :props :fn util/evaluate-js-function)]
+  (let [func (-> node :props :fn eval/evaluate-js-function)]
     (let [result (func scope)]
       (p/promise
         (if (map? result)

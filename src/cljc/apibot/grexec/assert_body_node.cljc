@@ -1,17 +1,15 @@
 (ns apibot.grexec.assert-body-node
   "Performs an assertion over the last request's body."
   (:require
-    [apibot.el :as el]
+    #?(:cljs [cljs.spec.alpha :as s] :clj [clojure.spec.alpha :as s])
     [apibot.graphs :refer [map->NativeGraph]]
-    [apibot.grexec.assertions :as assertions :refer [expected-http-response-error]]
+    [apibot.grexec.assertions :as assertions]
     [apibot.grexec.executors :as executors]
-    [apibot.util :as util]
-    [cljs.spec.alpha :as s]
-    [promesa.core :as p]))
+    [apibot.grexec.eval :as eval]))
 
 ;; ---- Spec ----
 
-(s/def ::fn util/is-js-function?)
+(s/def ::fn eval/is-js-function?)
 
 (s/def ::template string?)
 

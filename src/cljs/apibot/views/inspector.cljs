@@ -1,7 +1,7 @@
 (ns apibot.views.inspector
   (:require
     [apibot.graphs :as graphs :refer [singleton?]]
-    [apibot.util :refer [swapr!]]
+    [apibot.coll :refer [swapr!]]
     [apibot.views.commons :as commons :refer [cursor-vec]]
     [apibot.views.inspector.assert :as inspector-assert]
     [apibot.views.inspector.assert-body :as inspector-assert-body]

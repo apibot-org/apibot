@@ -8,7 +8,7 @@
     [apibot.router :as router]
     [apibot.state :refer [*app-state]]
     [apibot.storage :as storage]
-    [apibot.util :as util]
+    [apibot.coll :as coll]
     [apibot.views.dialogs :as dialogs]
     [apibot.views.editor :as editor]
     [apibot.views.executables :as executables]
@@ -78,6 +78,6 @@
 
 (defn init! []
   (mixpanel/track :ev-app-load)
-  (util/reset-in! *app-state [:graphs] grexec/graphs)
+  (coll/reset-in! *app-state [:graphs] grexec/graphs)
   (router/hook-browser-navigation!)
   (mount-components))

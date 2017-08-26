@@ -6,6 +6,7 @@
     [httpurr.client.xhr :as xhr]
     [promesa.core :as p]
     [apibot.util :as util]
+    [apibot.coll :as coll]
     [clojure.string :refer [lower-case includes?]]))
 
 (defn find-header
@@ -103,7 +104,7 @@
              ;; if the body is meant to be json,
              body (format-json-body-if-possible request)
              ;; format headers so that header keys are strings
-             headers (util/map-keys name headers)
+             headers (coll/map-keys name headers)
              ;; if the proxy is requested, send the request first to the proxy server.
              url (proxy-if-needed url proxy)
              ;; craft the promise
@@ -120,4 +121,4 @@
              (p/then (fn [response]
                        (-> response
                            (parse-body-if-possible)
-                           (update :headers util/keywordize-keys))))))))))
+                           (update :headers coll/keywordize-keys))))))))))

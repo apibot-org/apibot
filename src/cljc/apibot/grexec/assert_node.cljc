@@ -2,7 +2,7 @@
   (:require
     [apibot.el :as el]
     [apibot.graphs :refer [map->NativeGraph]]
-    [apibot.util :as util]
+    [apibot.grexec.eval :as eval]
     [promesa.core :as p]))
 
 ;; ---- API ----
@@ -10,7 +10,7 @@
 (defn execute
   [node scope]
   (let [{:keys [fn template]} (:props node)
-        func (-> fn util/evaluate-js-function)
+        func (-> fn eval/evaluate-js-function)
         rendered-template (el/render-str template scope)]
     (if (func scope)
       (p/promise scope)

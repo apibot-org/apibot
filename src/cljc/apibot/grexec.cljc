@@ -1,6 +1,7 @@
 (ns apibot.grexec
   "GrExec: Graph Execution"
   (:require
+    #?(:cljs [cljs.spec.alpha :as s] :clj [clojure.spec.alpha :as s])
     [apibot.el :as el]
     [apibot.graphs :as graphs]
     [apibot.grexec.assert-body-node :as assert-body-node]
@@ -15,9 +16,7 @@
     [apibot.grexec.extract-header-node :as extract-header-node]
     [apibot.grexec.http-node :as http-node]
     [apibot.exec-history :as exec-history]
-    [apibot.util :as util :refer [key-val-headers->map]]
     [cats.monad.either :refer [branch]]
-    [cljs.spec.alpha :as s]
     [promesa.core :as p]))
 
 ;; ---- Specs ----

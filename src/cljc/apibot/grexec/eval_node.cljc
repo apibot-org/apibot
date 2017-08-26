@@ -1,10 +1,10 @@
 (ns apibot.grexec.eval-node
   (:require
+    #?(:cljs [cljs.spec.alpha :as s] :clj [clojure.spec.alpha :as s])
     [apibot.el :as el]
     [apibot.graphs :refer [map->NativeGraph]]
     [cljs.js :refer [empty-state eval js-eval]]
     [cljs.reader :refer [read-string]]
-    [cljs.spec.alpha :as s]
     [promesa.core :as p]))
 
 (defn eval-str [s]

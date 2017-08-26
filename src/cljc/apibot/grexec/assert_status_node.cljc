@@ -1,10 +1,9 @@
 (ns apibot.grexec.assert-status-node
   (:require
+    #?(:cljs [cljs.spec.alpha :as s] :clj [clojure.spec.alpha :as s])
     [apibot.el :as el]
     [apibot.graphs :refer [map->NativeGraph]]
     [apibot.grexec.assertions :refer [expected-http-response-error]]
-    [apibot.util :as util]
-    [cljs.spec.alpha :as s]
     [promesa.core :as p]))
 
 ;; ---- Spec ----

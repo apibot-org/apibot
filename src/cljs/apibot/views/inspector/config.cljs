@@ -3,7 +3,7 @@
   (:require
     [apibot.grexec :as grexec]
     [apibot.grexec.config-node :as config-node]
-    [apibot.util :refer [remove-element-at]]
+    [apibot.coll :refer [remove-element-at]]
     [apibot.views.commons :as commons  :refer [form-group-bindable input-bindable cursor-vec]]
     [cljs.spec.alpha :as s]
     [reagent.core :refer [cursor]]))

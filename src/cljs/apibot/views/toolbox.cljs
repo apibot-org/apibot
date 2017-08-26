@@ -5,7 +5,8 @@
     [apibot.graphs :as graphs]
     [apibot.mixpanel :refer [trackfn]]
     [apibot.grexec :as grexec]
-    [apibot.util :as util :refer [swapr!]]
+    [apibot.util :as util]
+    [apibot.coll :as coll :refer [swapr!]]
     [apibot.views.commons :refer [publish glyphicon-run]]
     [promesa.core :as p]
     [reagent.core :refer [atom cursor]]))

@@ -2,7 +2,7 @@
   "A namespace for reusable higher level components used throughout apibot"
   (:require
     [cljs.spec.alpha :as s]
-    [apibot.util :as util]
+    [apibot.coll :as coll]
     [reagent.core :as reagent :refer [atom cursor]]
     [promesa.core :as p]))
 
@@ -131,7 +131,7 @@
   actually nil)"
   [*app-state ks pred]
   (let [pos (->> (get-in @*app-state ks)
-                 (util/positions pred)
+                 (coll/positions pred)
                  (first))]
     (when pos
       (cursor *app-state (into ks [pos])))))

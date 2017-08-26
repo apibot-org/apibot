@@ -1,7 +1,6 @@
 (ns apibot.grexec.csv-node
   (:require
     [apibot.graphs :as graphs :refer [map->NativeGraph]]
-    [apibot.util :as util]
     [promesa.core :as p]))
 
 (defn execute

@@ -5,6 +5,7 @@
     [apibot.grexec :as grexec]
     [apibot.router :as router]
     [apibot.util :as util]
+    [apibot.coll :as coll]
     [apibot.views.commons :as commons :refer [glyphicon-run input-bindable]]
     [clojure.string :refer [lower-case]]
     [reagent.core :refer [cursor atom]]))
@@ -20,7 +21,7 @@
   [*executions]
   (swap! *executions
          (fn [executions]
-           (util/dissoc-if
+           (coll/dissoc-if
              (fn [[k v]] (not= :pending (:state v)))
              executions))))
 

@@ -2,7 +2,7 @@
   (:require
     [reagent.core :refer [atom]]
     [apibot.graphs :as graphs]
-    [apibot.util :as util]))
+    [apibot.coll :as coll]))
 
 
 (def sample-fetch-luke-skywalker
@@ -106,4 +106,4 @@
   (get-in @*app-state [:ui :bootstrapped]))
 
 (defn bootstrapped! []
-  (util/reset-in! *app-state [:ui :bootstrapped] true))
+  (coll/reset-in! *app-state [:ui :bootstrapped] true))

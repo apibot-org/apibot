@@ -1,10 +1,8 @@
 (ns apibot.grexec.extract-header-node
   "Extracts a header from the last request."
   (:require
-    [apibot.el :as el]
+    #?(:cljs [cljs.spec.alpha :as s] :clj [clojure.spec.alpha :as s])
     [apibot.graphs :refer [map->NativeGraph]]
-    [apibot.util :as util]
-    [cljs.spec.alpha :as s]
     [promesa.core :as p]))
 
 ;; ---- Spec ----

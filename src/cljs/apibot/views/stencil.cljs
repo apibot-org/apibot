@@ -1,7 +1,7 @@
 (ns apibot.views.stencil
   (:require
     [apibot.graphs :as graphs :refer [label editable?]]
-    [apibot.util :as util :refer [swapr!]]
+    [apibot.coll :refer [swapr!]]
     [apibot.views.commons :as commons :refer [cursor-vec glyphicon-run]]
     [clojure.string :as s]
     [reagent.core :as reagent :refer [atom cursor]]))
@@ -24,7 +24,7 @@
   (let [;; Create an instance of the graph
         node (graphs/graph->node graph-to-add)]
     ;; TODO: check if this still works
-    (util/swapr! *selected-graph graphs/conj-node node)))
+    (swapr! *selected-graph graphs/conj-node node)))
 
 (defn matches-query?
   [query graph]

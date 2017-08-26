@@ -11,190 +11,18 @@
   [x]
   (cljs.core/js->clj x :keywordize-keys true))
 
+
 (defn to-json
   "Converts a clojure data structure x to a JSON string."
   [x]
   (-> x clj->js js/JSON.stringify))
+
 
 (defn from-json
   "Converts a json string to a clojure data structure."
   [json]
   (when json
     (-> json js/JSON.parse (js->clj))))
-
-(defn map-vals
-  "Given a map f as argument, maps all keys in the map to (f %)"
-  [m f]
-  (reduce-kv #(assoc %1 %2 (f %3)) {} m))
-
-(defn encode-query-params
-  "Encodes a map of query params into a a query-param string
-  Example:
-  (encode-query-params {:foo 1 :bar \"pizza and cheese\"})
-  \"foo=1&bar=pizza%20and%20cheese\""
-  [params-map]
-  (->> (map-vals params-map #(js/encodeURIComponent %))
-       (map (fn [[k v]] (str (name k) "=" v)))
-       (join "&")))
-
-(defn decode-query-params
-  "Serves as the inverse of encode query params with the exception that it takes a URL as argument"
-  [url]
-  (let [[_ query-string] (split url "?")]
-    (if (empty? query-string)
-      {}
-      (->> (split query-string "&")
-           (map #(split % "="))
-           (reduce (fn [result [k v]]
-                     (assoc result (keyword k) (js/decodeURIComponent v)))
-                   {})))))
-
-(defn limit-string
-  "Returns the first n chars of string + append if string is larger than n"
-  [string n append]
-  (if (>= n (count string))
-    string
-    (str (subs string 0 n) append)))
-
-
-(defn remove-element-at
-  "Removes the element at the given index from a vector."
-  [vector idx]
-  (vec
-    (concat (subvec vector 0 idx)
-            (subvec vector (inc idx)))))
-
-(defn dissoc-if
-  [kv-predicate m]
-  (->> (filter kv-predicate m)
-       (map first)
-       (apply dissoc m)))
-
-(defn swapr!
-  "Equivalent to swap! but f's last argument is the current value.
-  Example:
-  ```
-  (def x (atom [1 2 3]))
-  (swapr! x map inc)
-  ;; x = [2 3 4]
-  ```"
-  [atom f & args]
-  {:pre [(fn? f)]}
-  (swap! atom
-         (fn [curr f args]
-           (apply f (conj args curr)))
-         f (vec args)))
-
-(defn reset-in!
-  "Equivalent to reset! but takes a set of keys as the path to where the value will be set.
-
-  Example:
-  ```
-  (def x (atom {:foo {:bar 1}}))
-  (reset-in! x [:foo :bar] 2)
-  ;; x == {:foo {:bar 2}}
-  ```"
-  [*value ks v]
-  (swap! *value assoc-in ks v))
-
-(defn swap-in!
-  "Equivalent to swap! but takes a set of keys as the path to where the value will be set.
-
-  Example:
-  ```
-  (def x (atom {:foo {:bar 1}}))
-  (swap-in! x [:foo :bar] + 1 1)
-  ;; x == {:foo {:bar 3}}
-  ```"
-  [*value ks f & args]
-  (swap! *value
-         (fn [value ks f args]
-           (apply update-in value ks f args))
-         ks f args))
-
-(defn get-nested
-  "Similar to (get-in m ks) but takes a vector of functions instead
-  of a vector of keys thus being more generic.
-  ```"
-  ([m fns not-found]
-   (loop [current-nested-level m
-          remaining-funcs fns]
-     (cond
-       (nil? current-nested-level)
-       not-found
-
-       (empty? remaining-funcs)
-       current-nested-level
-
-       :else
-       (let [head-func (first remaining-funcs)
-             next-nested-level (head-func current-nested-level)]
-         (recur next-nested-level (rest remaining-funcs))))))
-  ([m fns]
-   (get-nested m fns nil)))
-
-
-(defn- key-val-headers->map
-  "Converts a collection of [{:key x, :val}] pairs into a map where
-  the keys correspond to the :key part and values to the :val part.
-  Example:
-  (key-val-headers->map [{:key :a :val 1} {:key :b :val 2}])
-  ;; => {:a 1 :b 2}"
-  [key-val-headers]
-  (reduce (fn [existing {:keys [key val]}]
-            (assoc existing key val))
-          {}
-          key-val-headers))
-
-(defn map-keys
-  "Maps the keys in map m with the given function."
-  [f m]
-  (reduce (fn [resulting-map key]
-            (assoc resulting-map (keyword key) (get m key)))
-          {} (keys m)))
-
-(defn keywordize-keys
-  "Given a map m as argument, returns a map with the keys converted to
-  keywords."
-  [m]
-  (map-keys #(if (string? %) (keyword %) %) m))
-
-
-(defn deref?
-  [x]
-  ;(satisfies? #?(:cljs IDeref :clj clojure.lang.IDeref) x))
-  (satisfies? IDeref x))
-
-
-(defn positions
-  [pred coll]
-  (assert (vector? coll)
-          "(positions pref coll) can only be invoked on a vector since it requires indices.")
-  "Returns all positions that match the given predicate"
-  (keep-indexed (fn [idx x]
-                  (when (pred x)
-                    idx))
-                coll))
-
-
-(defn is-js-function?
-  "Returns true if the given string represents a javascript function."
-  [string]
-  (try
-    (fn? (js/eval string))
-    (catch js/Object e
-      false)))
-
-
-(defn evaluate-js-function
-  "Given a javascript string representing a function,
-  returns a clojurized function."
-  [js-code]
-  (let [fun (js/eval js-code)]
-    (fn [& args]
-      (let [js-args (map clj->js args)]
-        (-> (apply fun js-args)
-            (js->clj))))))
 
 
 (defn puts
@@ -206,12 +34,15 @@
    (println message)
    (pprint x)))
 
+
 (defn log [& args]
   (let [log (-> js/console .-log)]
     (apply log args)))
 
+
 (defn error [message]
   (.error js/console message))
+
 
 (defn bind-promise!
   [*value promise]
@@ -219,6 +50,7 @@
     (reset! *value {:state :pending}))
   (p/then promise #(reset! *value {:state :done :value %}))
   (p/catch promise #(reset! *value {:state :error :value %})))
+
 
 (defn read-file [file]
   "
@@ -235,6 +67,7 @@
               (fn [e]
                 (resolve (-> e .-target .-result))))
         (.readAsText reader file "UTF-8")))))
+
 
 (defn read-csv
   [file delimiter]
@@ -254,13 +87,6 @@
                                                     (reject (ex-info (str "Error when loading CSV file '" file "'")
                                                                      (:errors results))))))}))))))
 
-(defn read-csv-at-line
-  "Returns the parsed CSV line with the given index."
-  [path delimiter index]
-  (p/then (read-csv path delimiter)
-          (fn [results]
-            (let [moduled-index (mod index (count results))]
-              (nth results moduled-index)))))
 
 (defn url?
   "Returns true iff x is a valid URL"

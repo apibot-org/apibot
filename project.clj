@@ -27,7 +27,7 @@
    [metosin/muuntaja "0.2.1"]
    [metosin/ring-http-response "0.9.0"]
    [mount "0.1.11"]
-   [org.clojure/clojure "1.8.0"]
+   [org.clojure/clojure "1.9.0-alpha18"]
    [org.clojure/clojurescript "1.9.562" :scope "provided"]
    [org.clojure/tools.cli "0.3.5"]
    [org.clojure/tools.logging "0.3.1"]

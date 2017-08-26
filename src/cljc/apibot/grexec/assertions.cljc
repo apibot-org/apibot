@@ -2,7 +2,7 @@
   "A namespace that exposes common functions for assertions"
   (:require
     [apibot.el :as el]
-    [apibot.util :as util]
+    [apibot.grexec.eval :as eval]
     [promesa.core :as p]))
 
 (defn expected-http-response-error
@@ -19,7 +19,7 @@
   (fn [node scope]
     (let [{:keys [template]} (:props node)
           body (-> scope :apibot.http-response path)
-          func (-> node :props :fn util/evaluate-js-function)
+          func (-> node :props :fn eval/evaluate-js-function)
           rendered-template (el/render-str template body)]
       (cond
         (not body)

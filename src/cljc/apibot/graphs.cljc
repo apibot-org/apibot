@@ -1,8 +1,6 @@
 (ns apibot.graphs
   "Common functions that deal with graphs."
   (:require
-    [apibot.util :as util]
-    [cljs.core :refer [random-uuid]]
     [clojure.string :refer [join]]
     [promesa.core :as p]))
 
@@ -42,7 +40,8 @@
 
 (defn uuid! []
   "Generate a large random string."
-  (str (random-uuid)))
+  (str #?(:cljs (random-uuid)
+          :clj  (java.util.UUID/randomUUID))))
 
 (defn make-edge [source-id target-id]
   {:id     (uuid!)

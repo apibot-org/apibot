@@ -1,16 +1,14 @@
 (ns apibot.grexec.http-node
   (:require
-    [apibot.el :as el]
-    [apibot.graphs :refer [map->NativeGraph]]
-    [apibot.http :refer [http-request!]]
-    [apibot.util :as util :refer [key-val-headers->map keywordize-keys]]
-    [cats.monad.either :refer [branch]]
-    [cljs.spec.alpha :as s]
-    [clojure.string :refer [lower-case includes?]]
-    [httpurr.client :as http]
-    [httpurr.client.xhr :as xhr]
-    [promesa.core :as p]
-    [clojure.string :as str]))
+    #?(:cljs [cljs.spec.alpha :as s] :clj [clojure.spec.alpha :as s])
+      [apibot.el :as el]
+      [apibot.graphs :refer [map->NativeGraph]]
+      [apibot.http :refer [http-request!]]
+      [apibot.coll :refer [key-vals->map]]
+      [cats.monad.either :refer [branch]]
+      [clojure.string :refer [lower-case includes?]]
+      [promesa.core :as p]
+      [clojure.string :as str]))
 
 ;; ---- Specs ----
 
@@ -39,8 +37,8 @@
         ; we are talking about.
         scope (dissoc scope :apibot.http-request :apibot.http-response)
         request (-> (:props node)
-                    (update :headers key-val-headers->map)
-                    (update :query-params key-val-headers->map))
+                    (update :headers key-vals->map)
+                    (update :query-params key-vals->map))
         either-request (el/render request scope)]
     (branch either-request
             (fn [error]
@@ -118,8 +116,8 @@
        (apply concat)
        (map (fn [[root-url verb endpoint]]
               (let [{:keys [parameters]} endpoint]
-                {:url (parse-swagger-url root-url)
-                 :http-method (parse-swagger-http-method verb)
+                {:url          (parse-swagger-url root-url)
+                 :http-method  (parse-swagger-http-method verb)
                  :query-params (parse-swagger-query-params parameters)
-                 :body ""
-                 :headers (parse-swagger-http-headers endpoint)})))))
+                 :body         ""
+                 :headers      (parse-swagger-http-headers endpoint)})))))
