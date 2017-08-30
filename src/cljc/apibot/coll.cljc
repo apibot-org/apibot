@@ -1,4 +1,6 @@
-(ns apibot.coll)
+(ns apibot.coll
+  (:require
+    [clojure.set :as sets]))
 
 (defn rename-key
   "Takes a map as argument and renames the old key for the new.
@@ -37,6 +39,7 @@
 
 
 (defn dissoc-if
+  "dissocs all keys in m that match the given predicate."
   [kv-predicate m]
   (->> (filter kv-predicate m)
        (map first)
@@ -135,6 +138,20 @@
   keywords."
   [m]
   (map-keys #(if (string? %) (keyword %) %) m))
+
+
+(defn submap
+  "Takes a map m as input and a coll of keys and returns a map with only the given keys.
+
+  Example:
+
+  (submap {:foo 1 :bar 2 :baz 3} [:foo :baz])
+  => {:foo 1 :baz 3}
+  "
+  [m ks]
+  (keys m)
+  (->> (sets/difference (set (keys m)) (set ks))
+       (apply dissoc m)))
 
 
 (defn positions

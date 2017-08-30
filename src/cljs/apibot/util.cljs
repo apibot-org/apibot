@@ -12,17 +12,6 @@
   (cljs.core/js->clj x :keywordize-keys true))
 
 
-(defn to-json
-  "Converts a clojure data structure x to a JSON string."
-  [x]
-  (-> x clj->js js/JSON.stringify))
-
-
-(defn from-json
-  "Converts a json string to a clojure data structure."
-  [json]
-  (when json
-    (-> json js/JSON.parse (js->clj))))
 
 
 (defn puts
@@ -87,12 +76,6 @@
                                                     (reject (ex-info (str "Error when loading CSV file '" file "'")
                                                                      (:errors results))))))}))))))
 
-
-(defn url?
-  "Returns true iff x is a valid URL"
-  [x]
-  (try (-> (new js/URL x) .-hostname empty? not)
-       (catch js/Object _ false)))
 
 (defn throttle
   "Returns a function with the same signature as func which is guaranteed to be invoked no more than

@@ -30,12 +30,12 @@
 
 (defn execute
   "Performs an HTTP request and appends the scope with the
-  :apibot.http-request and :apibot.http-response keys."
+  :apibot|http-request and :apibot|http-response keys."
   [node scope]
   (let [; clear the apibot.http-(request|response) keys from the scope. This way if there is
         ; an error and the request is not executed, it is obvious to the user which request/response
         ; we are talking about.
-        scope (dissoc scope :apibot.http-request :apibot.http-response)
+        scope (dissoc scope :apibot|http-request :apibot|http-response)
         request (-> (:props node)
                     (update :headers key-vals->map)
                     (update :query-params key-vals->map))
@@ -43,8 +43,8 @@
     (branch either-request
             (fn [error]
               (assoc scope
-                :apibot.error true
-                :apibot.el-error error))
+                :apibot|error true
+                :apibot|el-error error))
             (fn [rendered-request]
               (-> (http-request! rendered-request {:proxy true})
                   (p/then
@@ -54,21 +54,21 @@
                       ;; in the future.
                       (if (= 0 (:status result))
                         (assoc scope
-                          :apibot.http-request rendered-request
-                          :apibot.error true
-                          :apibot.http-error
+                          :apibot|http-request rendered-request
+                          :apibot|error true
+                          :apibot|http-error
                           (str "The request could not be executed, likely due to "
                                "connection problems. Please check your internet \n"
                                "connection and try again."))
                         (assoc scope
-                          :apibot.http-request rendered-request
-                          :apibot.http-response result))))
+                          :apibot|http-request rendered-request
+                          :apibot|http-response result))))
 
                   (p/catch
                     (fn [error]
                       (assoc scope
-                        :apibot.error true
-                        :apibot.http-error error))))))))
+                        :apibot|error true
+                        :apibot|http-error error))))))))
 
 
 (def graph

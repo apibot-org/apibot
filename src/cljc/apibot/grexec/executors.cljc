@@ -6,8 +6,8 @@
   ([node scope]
    (p/promise
      (assoc scope
-       :apibot.error true
-       :apibot.js-error
+       :apibot|error true
+       :apibot|js-error
        (str "There was an error when trying to evaluate node \"" (:name node)
             "\"'s JavaScript function."))))
   ([node scope error]

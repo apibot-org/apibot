@@ -5,6 +5,7 @@
 
   :dependencies
   [;
+   [aleph "0.4.3"]
    [amalloy/ring-gzip-middleware "0.1.3"]
    [clj-time "0.13.0"]
    [cljsjs/papaparse "4.1.1-1"]
@@ -29,6 +30,7 @@
    [mount "0.1.11"]
    [org.clojure/clojure "1.9.0-alpha18"]
    [org.clojure/clojurescript "1.9.562" :scope "provided"]
+   [org.clojure/data.json "0.2.6"]
    [org.clojure/tools.cli "0.3.5"]
    [org.clojure/tools.logging "0.3.1"]
    [org.webjars.bower/tether "1.4.0"]

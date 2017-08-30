@@ -19,7 +19,8 @@
          (map (fn [[graph-id *bound-promise]]
                 {:graph          (graphs/find-graph-by-id graph-id graphs)
                  :*bound-promise *bound-promise}))
-         (filter :graph))))
+         (filter :graph)
+         (sort-by (comp graphs/label :graph)))))
 
 (defn find-active-tasks
   [tasks]
@@ -93,7 +94,7 @@
                [:td
                 [:div
                  [:a.btn.btn-link
-                  {:href (str "#executions/" (:id graph))}
+                  {:href (str "#editor/" (:id graph))}
                   (graphs/label graph)]]]
                [:td
                 [executables/execution-result-view (:id graph) *bound-promise]]]))]]]

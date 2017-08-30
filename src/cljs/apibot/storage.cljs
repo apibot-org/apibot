@@ -28,7 +28,7 @@
 (def is-first-run?
   (memoize
     (fn []
-      (let [first-run (get-item :apibot.first-run true)]
+      (let [first-run (get-item :apibot|first-run true)]
         (when first-run
-          (set-item :apibot.first-run false))
+          (set-item :apibot|first-run false))
         first-run))))

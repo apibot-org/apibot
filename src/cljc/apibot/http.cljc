@@ -1,13 +1,14 @@
 (ns apibot.http
   "An HTTP client based on httpurr's xhr client"
   (:require
+    [#?(:cljs httpurr.client.xhr :clj httpurr.client.aleph) :as client-impl]
+    [apibot.coll :as coll]
+    [apibot.json :as json]
+    [apibot.specs :as specs]
+    [clojure.string :refer [lower-case includes?]]
     [httpurr.client :as http]
     [httpurr.status :as status]
-    [httpurr.client.xhr :as xhr]
-    [promesa.core :as p]
-    [apibot.util :as util]
-    [apibot.coll :as coll]
-    [clojure.string :refer [lower-case includes?]]))
+    [promesa.core :as p]))
 
 (defn find-header
   "Returns the value of a header in a request/response map"
@@ -21,7 +22,7 @@
 
 (defn- parse-body-as-json
   [response]
-  (update response :body util/from-json))
+  (update response :body json/from-json))
 
 (defn- with-defaults [request]
   (-> request
@@ -46,7 +47,7 @@
     (if-let [content-type (find-header :content-type request)]
       (if (and (includes? content-type "application/json")
                (not (string? body)))
-        (util/to-json body)
+        (json/to-json body)
         body)
       body)))
 
@@ -61,19 +62,26 @@
     (ok? (:status status-or-request))))
 
 (defn proxy-if-needed
+  "Takes a url string and a boolean proxy?
+  Decides if a proxy should be used to handle the request. This is only necessary in the JS environemnt
+  to prevent/surpass CORS restrictions.
+
+  On the JVM there is no need for proxying."
   [url proxy?]
-  (let [hostname (-> (js/URL. url) .-hostname)
-        localhost? (contains? #{"localhost" "127.0.0.1"} hostname)]
-    (cond
-      ; Case #1: if trying to connect to localhost, don't proxy.
-      localhost?
-      url
-      ; Case #2: if a proxy has been requested, proxy the URL.
-      proxy?
-      (str "https://apibot-proxy.herokuapp.com/" url)
-      ; Case #3: if no proxy has been requested, then don't proxy.
-      :else
-      url)))
+  #?(:cljs
+      (let [hostname (-> (js/URL. url) .-hostname)
+            localhost? (contains? #{"localhost" "127.0.0.1"} hostname)]
+        (cond
+          ; Case #1: if trying to connect to localhost, don't proxy.
+          localhost?
+          url
+          ; Case #2: if a proxy has been requested, proxy the URL.
+          proxy?
+          (str "https://apibot-proxy.herokuapp.com/" url)
+          ; Case #3: if no proxy has been requested, then don't proxy.
+          :else
+          url))
+     :clj url))
 
 
 (defn http-request!
@@ -90,7 +98,7 @@
    (let [{:keys [http-method url headers query-params body]} (with-defaults request)]
      ;; do some validation, nothing out of the ordinary.
      (cond
-       (not (util/url? url))
+       (not (specs/url? url))
        (p/rejected (ex-info "The provided url is not valid" url))
        (nil? http-method)
        (p/rejected (ex-info (str "The provided HTTP method is not valid ('" http-method "')") http-method))
@@ -114,7 +122,7 @@
                           :headers      headers
                           :body         body}
 
-             resp-promise (http/send! xhr/client request-obj)]
+             resp-promise (http/send! client-impl/client request-obj)]
 
          (-> resp-promise
              ;; ensure the body is parsed from JSON

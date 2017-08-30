@@ -18,7 +18,7 @@
 (defn execute
   [node scope]
   (let [{:keys [from to template]} (:props node)
-        status (-> scope :apibot.http-response :status)]
+        status (-> scope :apibot|http-response :status)]
     (cond
       (not status)
       (p/promise (expected-http-response-error scope))
@@ -29,8 +29,8 @@
       :else
       (p/promise
         (assoc scope
-          :apibot.error true
-          :apibot.assertion-failed
+          :apibot|error true
+          :apibot|assertion-failed
           (str "Expected the status to be in the inclusive range of [" from ", " to "]"
                "  but instead found '" status "'"))))))
 

@@ -16,8 +16,8 @@
       (p/promise scope)
       (p/promise
         (assoc scope
-          :apibot.error true
-          :apibot.assertion-failed @rendered-template)))))
+          :apibot|error true
+          :apibot|assertion-failed @rendered-template)))))
 
 (def graph
   (map->NativeGraph

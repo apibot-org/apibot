@@ -16,8 +16,8 @@
         (if (map? result)
           result
           (assoc scope
-            :apibot.error true
-            :apibot.js-error
+            :apibot|error true
+            :apibot|js-error
             (str "The result of an EvalJS node must always be a non-null javascript object but "
                  "instead returned '" result "'.")))))))
 

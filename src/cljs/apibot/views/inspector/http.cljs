@@ -11,7 +11,7 @@
     [clojure.string :as str]
     [clojure.string :refer [lower-case trim]]
     [reagent.core :as reagent :refer [atom cursor]]
-    [apibot.util :as util]
+    [apibot.json :as json]
     [cats.monad.exception :as exception]))
 
 ;; ---- Model ----
@@ -83,7 +83,7 @@
         parse-endpoints (exception/wrap
                           (fn []
                             (->> @*swagger-json
-                                 (util/from-json)
+                                 (json/from-json)
                                  (http-node/parse-swagger))))]
     (fn []
       [dialogs/generic-dialog

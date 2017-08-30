@@ -4,7 +4,8 @@
     [apibot.coll :refer [swapr!]]
     [apibot.views.commons :as commons :refer [cursor-vec glyphicon-run]]
     [clojure.string :as s]
-    [reagent.core :as reagent :refer [atom cursor]]))
+    [reagent.core :as reagent :refer [atom cursor]]
+    [apibot.router :as router]))
 
 ;; ---- Model ----
 
@@ -51,7 +52,7 @@
 
      [:p.list-group-item-heading
       (when editable
-        {:on-click (fn [e] (reset! *selected-graph-id (:id graph)))})
+        {:on-click (fn [e] (router/goto-editor (:id graph)))})
       (when executable [glyphicon-run])
       [:b (if (empty? (label graph)) [:i "no name"] (label graph))]]
 
@@ -68,7 +69,8 @@
 
        (when editable
          [:button.btn.btn-xs.btn-default
-          {:on-click (fn [e] (reset! *selected-graph-id (:id graph)))}
+          {:on-click (fn [e]
+                       (router/goto-editor (:id graph)))}
           [:span.glyphicon.glyphicon-edit {:aria-hidden "true"}]
           "Edit"])
 

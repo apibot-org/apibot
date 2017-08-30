@@ -95,9 +95,11 @@
 (def samples [sample-fetch-luke-skywalker sample-fetch-dagobah])
 
 (def *app-state
+  "Stores the whole application's state"
   (atom
     {:graphs     []
      :executions {}
+     :execution-history []
      :ui         {:selected-graph-id     nil
                   :tasks-dialog-expanded true
                   :bootstrapped          false}}))

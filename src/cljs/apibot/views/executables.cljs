@@ -30,7 +30,7 @@
   (let [graphs (:graphs @*app-state)]
     (->> (:executions @*app-state)
          (filter (fn [[_ {:keys [state value]}]]
-                   (or (and (= state :done) (exec-history/error? value))
+                   (or (and (= state :done) (exec-history/error? (:history value)))
                        (= state :error))))
          (map (fn [[graph-id _]]
                 (graphs/find-graph-by-id graph-id graphs))))))
@@ -57,28 +57,39 @@
   "TODO: implement this button!"
   [*executions])
 
+
+(defn execution-result-view2
+  [execution]
+  (if (or (and (contains? execution :result) (-> execution :result :failed))
+          (exec-history/error? (:history execution)))
+    [:a.btn.btn-danger.btn-xs
+     {:href (str "#executions/" (:id execution))}
+     [:span.glyphicon.glyphicon-exclamation-sign]
+     " Error"]
+    [:a.btn.btn-success.btn-xs
+     {:href (str "#executions/" (:id execution))}
+     [:span.glyphicon.glyphicon-ok-circle]
+     " Success"]))
+
 (defn execution-result-view
+  "Takes an execution wrapped in a bound-promise adn a graph-id as input an displays
+  a small widget showing the result of the execution."
   [graph-id *bound-promise]
   (when @*bound-promise
     [commons/promise-view *bound-promise
      [:span.glyphicon.glyphicon-refresh.rotating {:aria-hidden true}]
-     (fn [execution-history]
-       (if (exec-history/error? execution-history)
-         [:a.btn.btn-danger.btn-xs
-          {:href (str "#executions/" graph-id)}
-          [:span.glyphicon.glyphicon-exclamation-sign]
-          " Error"]
-         [:a.btn.btn-success.btn-xs
-          {:href (str "#executions/" graph-id)}
-          [:span.glyphicon.glyphicon-ok-circle]
-          " Success"]))]))
+     (fn [execution]                                        ;; <= this is an Execution
+       [execution-result-view2 execution])]))
+
 
 ;; ---- Views ----
 
 (defn executables
   [*app-state]
   (let [graphs-cursors (commons/cursor-vec *app-state [:graphs])
-        executable-graphs-cursors (filter (comp graphs/executable? deref) graphs-cursors)
+        executable-graphs-cursors (->> graphs-cursors
+                                       (filter (comp graphs/executable? deref))
+                                       (sort-by (comp graphs/label deref)))
         *executions (cursor *app-state [:executions])]
     [:div.row
      [:div.btn-group
@@ -97,7 +108,7 @@
        "Retry failed"]
       [:button.btn.btn-default
        {:type     "button"
-        :style {:display "none"}
+        :style    {:display "none"}
         :on-click (fn [e] (export-results! *executions))}
        "Export Results"]
       [:button.btn.btn-default
@@ -118,6 +129,6 @@
              [:tr {:key graph-id}
               [:td {:style {:width "40%"}}
                [glyphicon-run]
-               (label @*graph)]
+               [:a {:href (str "#editor/" graph-id)} (label @*graph)]]
               [:td
                [execution-result-view graph-id *bound-promise]]])))]]]))

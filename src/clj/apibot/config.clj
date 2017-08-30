@@ -29,6 +29,8 @@
 
 (defprop dev)
 (defprop auth0-audience)
+(defprop aws-lambda-api-url)
+(defprop aws-lambda-api-key)
 
 (defn dev?
   "Return true iff the current environment is dev"

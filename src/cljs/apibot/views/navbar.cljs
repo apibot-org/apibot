@@ -27,24 +27,29 @@
        [:li {:class (active-class-if-page "#editor")}
         [:a
          {:href "#editor"}
-         [:span.glyphicon.glyphicon-edit {:aria-hidden "true"}] " Editor"]]
+         [:span.glyphicon.glyphicon-edit] " Editor"]]
 
        [:li {:class (active-class-if-page "#executables")}
         [:a
          {:href "#executables"}
-         [:span.glyphicon.glyphicon-flash {:aria-hidden "true"}] " Executables"]]
+         [:span.glyphicon.glyphicon-flash] " Executables"]]
+
+       [:li {:class (active-class-if-page "#executions")}
+        [:a
+         {:href "#executions"}
+         [:span.glyphicon.glyphicon-th-list] " Execution History"]]
 
        [:li
         [:a
-         {:href "http://apibot.co/docs"
+         {:href   "http://apibot.co/docs"
           :target "_blank"}
-         [:span.glyphicon.glyphicon-education {:aria-hidden "true"}] " Documentation"]]]
+         [:span.glyphicon.glyphicon-education] " Documentation"]]]
 
       [:ul.nav.navbar-nav.navbar-right
        [:li
         [:a
-         {:role "button"
+         {:role     "button"
           :on-click #(auth0/logout)}
-         [:span.glyphicon.glyphicon-user {:aria-hidden "true"}] " Logout"]]]]]))
+         [:span.glyphicon.glyphicon-user] " Logout"]]]]]))
 
 

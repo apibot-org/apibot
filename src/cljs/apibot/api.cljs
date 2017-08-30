@@ -6,6 +6,7 @@
     [apibot.state :as state]
     [apibot.storage :as storage]
     [apibot.util :as util]
+    [apibot.coll :as coll]
     [clojure.string :as s]
     [httpurr.status :as status]
     [promesa.core :as p]
@@ -42,6 +43,21 @@
      :executable executable
      :nodes      (map node->remote-node nodes)
      :name       (or name "")}))
+
+(defn execution-step->remote-execution-step
+  "Returns the subset of execution which conforms to the ExecutionStep schema"
+  [execution-step]
+  (-> execution-step
+      (coll/submap [:node :id :scope :start-time :end-time])
+      (update :node node->remote-node)))
+
+(defn execution->remote-execution
+  "Returns the subset of execution which conforms to the Execution schema"
+  [execution]
+  (-> execution
+      (coll/submap [:id :graph-id :name :created-at :history])
+      (update :history #(map execution-step->remote-execution-step %))))
+
 
 (defn api!
   "Makes an HTTP request and appends the x-apibot-auth token.
@@ -110,6 +126,22 @@
         (p/then :body))
     (p/promise {:removed 0})))
 
+(defn insert-execution
+  [execution]
+  (api! {:http-method :post
+         :url         (str apibot-root "/executions")
+         :headers     {:content-type "application/json"}
+         :body        {:execution (execution->remote-execution execution)}}))
+
+(defn find-executions []
+  (-> (api! {:http-method :get
+             :url         (str apibot-root "/executions")})
+      (p/then (comp :executions :body))))
+
+(defn find-execution [execution-id]
+  (-> (api! {:http-method :get
+             :url         (str apibot-root "/executions/" execution-id)})
+      (p/then :body)))
 
 (defn sync-graphs
   "Updates and deletes graphs"

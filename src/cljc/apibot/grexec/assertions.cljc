@@ -8,8 +8,8 @@
 (defn expected-http-response-error
   [scope]
   (assoc scope
-    :apibot.error true
-    :apibot.assertion-failed
+    :apibot|error true
+    :apibot|assertion-failed
     (str "No HTTP response was found. This node may only be used to assert the\n"
          "contents of an HTTP response. Did you maybe forget to create an HTTP\n"
          "Request node before this assertion?")))
@@ -18,7 +18,7 @@
   [path]
   (fn [node scope]
     (let [{:keys [template]} (:props node)
-          body (-> scope :apibot.http-response path)
+          body (-> scope :apibot|http-response path)
           func (-> node :props :fn eval/evaluate-js-function)
           rendered-template (el/render-str template body)]
       (cond
@@ -31,5 +31,5 @@
         :else
         (p/promise
           (assoc scope
-            :apibot.error true
-            :apibot.assertion-failed @rendered-template))))))
+            :apibot|error true
+            :apibot|assertion-failed @rendered-template))))))

@@ -17,9 +17,10 @@
 ;; ---- Views ----
 
 (defn editor
-  [*app-state]
-  (let [*graphs (cursor *app-state [:graphs])
-        *selected-graph (commons/find-selected-graph-ratom *app-state)]
+  [selected-graph-id *app-state]
+  (let [*selected-graph (commons/find-as-cursor
+                          *app-state [:graphs]
+                          #(= (:id %) selected-graph-id))]
 
     [:div.row
      ;; The Stencil

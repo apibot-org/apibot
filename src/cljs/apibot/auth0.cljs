@@ -38,22 +38,22 @@
     (fn [resolve reject]
       (.parseHash web-auth
                   (fn [err auth-result]
-                    (println "Handle Auth:" err auth-result
-                             (cond
-                               ; Case #1: there is an auth result
-                               auth-result
-                               (let [access-token (.-accessToken auth-result)
-                                     expires-in (.-expiresIn auth-result)]
-                                 (set-session access-token expires-in)
-                                 (resolve access-token))
+                    (println "Handle Auth:" err auth-result)
+                    (cond
+                      ; Case #1: there is an auth result
+                      auth-result
+                      (let [access-token (.-accessToken auth-result)
+                            expires-in (.-expiresIn auth-result)]
+                        (set-session access-token expires-in)
+                        (resolve access-token))
 
-                               ; Case #2: There was an error parsing the auth result
-                               err
-                               (reject (ex-info "Failed to authenticate" err))
+                      ; Case #2: There was an error parsing the auth result
+                      err
+                      (reject (ex-info "Failed to authenticate" err))
 
-                               ; Case #3: There was no auth result, skip silently
-                               :else
-                               (println "Not handling request since there was no auth-token"))))))))
+                      ; Case #3: There was no auth result, skip silently
+                      :else
+                      (println "Not handling request since there was no auth-token")))))))
 
 (defn fetch-user-info [access-token]
   (p/promise

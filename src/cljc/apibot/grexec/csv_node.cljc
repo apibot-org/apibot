@@ -6,7 +6,7 @@
 (defn execute
   [node scope]
   (let [rows (-> node :props :rows)
-        row-index (:apibot.row-index scope)
+        row-index (:apibot|row-index scope)
         row (nth rows row-index {})]
     (p/promise (merge scope row))))
 

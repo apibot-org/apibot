@@ -6,7 +6,7 @@
   [exec-history]
   (->> exec-history
        (map :scope)
-       (map :apibot.error)
+       (map :apibot|error)
        (filter true?)
        (first)
        (some?)))

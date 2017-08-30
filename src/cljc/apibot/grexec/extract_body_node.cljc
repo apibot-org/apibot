@@ -20,7 +20,7 @@
   [node scope]
   (let [key-name (-> node :props :name)
         func (-> node :props :fn eval/evaluate-js-function)
-        body (get-in scope [:apibot.http-response :body])
+        body (get-in scope [:apibot|http-response :body])
         value (func body)]
     (p/promise (assoc scope key-name value))))
 

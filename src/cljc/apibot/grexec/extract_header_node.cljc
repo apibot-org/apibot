@@ -19,7 +19,7 @@
   [node scope]
   (let [key-name (-> node :props :name)
         header-key (-> node :props :header keyword)
-        header-val (get-in scope [:apibot.http-response :headers header-key])]
+        header-val (get-in scope [:apibot|http-response :headers header-key])]
     (p/promise (assoc scope key-name header-val))))
 
 (def graph

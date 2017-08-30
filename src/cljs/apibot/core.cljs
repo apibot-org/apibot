@@ -13,6 +13,7 @@
     [apibot.views.editor :as editor]
     [apibot.views.executables :as executables]
     [apibot.views.execution :as execution]
+    [apibot.views.executions :as executions]
     [apibot.views.loading :as loading]
     [apibot.views.login :as login]
     [apibot.views.navbar :as navbar]
@@ -30,13 +31,19 @@
    [navbar/navbar *app-state]
    [tasks-dialog/tasks-dialog *app-state]
    [:div.container-fluid
-    [editor/editor *app-state]]])
+    [editor/editor (session/get :graph-id) *app-state]]])
 
 (defn executions-page []
   [:div
    [navbar/navbar *app-state]
    [:div.container-fluid
-    [execution/execution (session/get :graph-id) *app-state]]])
+    [executions/executions *app-state]]])
+
+(defn execution-page []
+  [:div
+   [navbar/navbar *app-state]
+   [:div.container-fluid
+    [execution/execution (session/get :execution-id) *app-state]]])
 
 (defn executables-page [& args]
   [:div
@@ -61,6 +68,7 @@
 (def pages
   {:editor      #'editor-page
    :executions  #'executions-page
+   :execution   #'execution-page
    :executables #'executables-page
    :login       #'login-page
    :loading     #'loading-page})
@@ -77,6 +85,7 @@
     (.getElementById js/document "app")))
 
 (defn init! []
+  (raven/init!)
   (mixpanel/track :ev-app-load)
   (coll/reset-in! *app-state [:graphs] grexec/graphs)
   (router/hook-browser-navigation!)

@@ -8,7 +8,6 @@
     [apibot.views.inspector.assert-headers :as inspector-assert-headers]
     [apibot.views.inspector.assert-status :as inspector-assert-status]
     [apibot.views.inspector.config :as inspector-config]
-    [apibot.views.inspector.eval :as inspector-eval]
     [apibot.views.inspector.evaljs :as inspector-evaljs]
     [apibot.views.inspector.csv :as inspector-csv]
     [apibot.views.inspector.extract-body :as inspector-extract-body]
@@ -16,7 +15,8 @@
     [apibot.views.inspector.graph :as inspector-graph]
     [apibot.views.inspector.http :as inspector-http]
     [apibot.views.paper :as paper]
-    [reagent.core :refer [cursor]]))
+    [reagent.core :refer [cursor]]
+    [apibot.router :as router]))
 
 (def paper-nested-graph (paper/create-paper-class "selected-nested-graph"))
 
@@ -24,7 +24,6 @@
   [*app-state *selected-node]
   (when-let [selected-node @*selected-node]
     (let [{:keys [graph-id name type]} selected-node
-          *selected-graph-id (cursor *app-state [:ui :selected-graph-id])
           ; this is the graph that is being rendered in the inspector becaus the node is selected.
           *graph (commons/find-as-cursor *app-state [:graphs] #(= (:id %) graph-id))
           ; this is the graph that is being rendered in the editor.
@@ -37,7 +36,7 @@
         (inspector-config/config *selected-node)
 
         (= type "eval")
-        (inspector-eval/eval *selected-node)
+        [:p "Clojure Eval is no longer supported"]
 
         (= type "evaljs")
         (inspector-evaljs/evaljs *selected-node)
@@ -81,7 +80,7 @@
          [:div {:style {:pointer-events "none" :height "50vh"}}
           [paper-nested-graph *graph]]
          [:button.btn.btn-default
-          {:on-click #(reset! *selected-graph-id graph-id)}
+          {:on-click #(router/goto-editor graph-id)}
           "Open " name]]
 
         :else

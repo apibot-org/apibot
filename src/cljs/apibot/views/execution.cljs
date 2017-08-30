@@ -6,15 +6,18 @@
     [apibot.util :as util]
     [apibot.coll :as coll]
     [apibot.router :as router]
+    [apibot.views.commons :as commons]
     [apibot.views.tree :as tree]
     [clojure.string :refer [starts-with?]]
-    [reagent.core :refer [atom cursor]]))
+    [reagent.core :refer [atom cursor]]
+    [apibot.api :as api]
+    [promesa.core :as p]))
 
 ;; ---- Model ----
 
 (defn exclude-apibot-keys
   [scope]
-  (coll/dissoc-if (fn [[k _]] (starts-with? (name k) "apibot.")) scope))
+  (coll/dissoc-if (fn [[k _]] (starts-with? (name k) "apibot|")) scope))
 
 ;; ---- Views ----
 
@@ -24,35 +27,35 @@
     [:div
      [:h4 "Scope: '" (-> node :name) "'"]
      [tree/tree (exclude-apibot-keys scope)]
-     (when-let [request (:apibot.http-request scope)]
+     (when-let [request (:apibot|http-request scope)]
        [:div
         [:h4 "Http Request"]
         [tree/tree request]])
-     (when-let [response (:apibot.http-response scope)]
+     (when-let [response (:apibot|http-response scope)]
        [:div
         [:h4 "Http Response"]
         [tree/tree response]])
-     (when-let [message (:apibot.assertion-failed scope)]
+     (when-let [message (:apibot|assertion-failed scope)]
        [:div
         [:h4 "Assertion Failed"]
         [tree/tree message]])
-     (when-let [error (:apibot.el-error scope)]
+     (when-let [error (:apibot|el-error scope)]
        [:div
         [:h4 "Template Error"]
         [tree/tree error]])
-     (when-let [error (:apibot.timeout-error scope)]
+     (when-let [error (:apibot|timeout-error scope)]
        [:div
         [:h4 "Timeout Error"]
         [tree/tree error]])
-     (when-let [error (:apibot.js-error scope)]
+     (when-let [error (:apibot|js-error scope)]
        [:div
         [:h4 "JavaScript Error"]
         [tree/tree error]])
-     (when-let [error (:apibot.csv-error scope)]
+     (when-let [error (:apibot|csv-error scope)]
        [:div
         [:h4 "CSV Error"]
         [tree/tree error]])
-     (when-let [error (:apibot.http-error scope)]
+     (when-let [error (:apibot|http-error scope)]
        [:div
         [:h4 "Http Error"]
         [tree/tree error]])]))
@@ -67,32 +70,53 @@
                             (:id step))
                        "active"
                        "")
-                     (if (:apibot.error (:scope step))
+                     (if (:apibot|error (:scope step))
                        " list-group-item-danger"
                        ""))
       :on-click (fn [e] (reset! *selected-step step))}
      [:p (:name node)
       [:span.label.label-info.pull-right (str (int millis) "ms")]]]))
 
+(defn view-load-execution [execution-id *app-state]
+  (let [*execution (commons/find-as-cursor *app-state [:execution-history] #(= (:id %) execution-id))
+        *executions (cursor *app-state [:execution-history])]
+    (p/then (api/find-execution execution-id)
+            (fn [result]
+              (if *execution
+                (reset! *execution result)
+                (swap! *executions conj result))))
+    [:div
+     {:style {:text-align "center"
+              :max-width "300px"
+              :margin "5% auto"}}
+     [:h4 "Loading, please wait"]
+     [:div.progress
+      [:div.progress-bar.progress-bar-striped.active
+       {:style {:width "100%"}}
+       [:span.sr-only "loading..."]]]]))
+
 (defn execution
-  [graph-id *app-state]
-  (let [*execution (cursor *app-state [:executions graph-id])
-        *graphs (cursor *app-state [:graphs])
-        graph (->> @*app-state :graphs (graphs/find-graph-by-id graph-id))
-        execution-steps (sort-by :start-time (exec-history/from-bound-promise @*execution))
+  [execution-id *app-state]
+  (let [execution (->> @*app-state
+                       :execution-history
+                       (filter #(= (:id %) execution-id))
+                       (first))
+        execution-steps (:history execution)
         *selected-step (atom (first execution-steps))]
     (if (empty? execution-steps)
-      [:p "No results to display."]
+      [view-load-execution execution-id *app-state]
       [:div
        [:div.page-header {:style {:margin-top "20px"}}
         [:div.btn-group.pull-right
          [:button.btn.btn-default
-          {:on-click (fn []
-                       (swap! *app-state assoc-in [:ui :selected-graph-id] graph-id)
-                       (router/goto-editor))}
+          {:on-click (fn [] (router/goto-executions))}
+          [:span.glyphicon.glyphicon-th-list]
+          " Execution History"]
+         [:button.btn.btn-primary
+          {:on-click #(router/goto-editor (:graph-id execution))}
           [:span.glyphicon.glyphicon-edit]
           " Go to graph"]]
-        [:h3 (:name graph) [:small " execution results"]]]
+        [:h3 (:name execution) [:small " execution results"]]]
        [:div.row
         [:div.col-md-4
          [:div.list-group

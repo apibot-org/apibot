@@ -9,7 +9,8 @@
     [apibot.coll :as coll :refer [swapr!]]
     [apibot.views.commons :refer [publish glyphicon-run]]
     [promesa.core :as p]
-    [reagent.core :refer [atom cursor]]))
+    [reagent.core :refer [atom cursor]]
+    [apibot.router :as router]))
 
 (defn button-add-new-graph [*app-state text]
   (let [*graphs (cursor *app-state [:graphs])
@@ -19,7 +20,7 @@
      {:on-click (trackfn :ev-toolbox-new-graph
                          #(let [g (graphs/empty-graph)]
                             (swap! *graphs conj g)
-                            (reset! *selected-graph-id (:id g))))}
+                            (router/goto-editor (:id g))))}
      [:span.glyphicon.glyphicon-plus {:aria-hidden "true"}]
      (str " " text)]))
 
@@ -27,7 +28,7 @@
   [*app-state]
   (let [running (atom false)
         graphs-ratom (cursor *app-state [:graphs])
-        executions (cursor *app-state [:executions])]
+        *executions (cursor *app-state [:executions])]
     (fn []
       (let [selected-graph-id (get-in @*app-state [:ui :selected-graph-id])
             graphs (:graphs @*app-state)
@@ -42,7 +43,7 @@
                          (reset! running true)
                          (let [promise (grexec/execute! @graphs-ratom selected-graph)]
                            (util/bind-promise!
-                             (cursor executions [(:id selected-graph)])
+                             (cursor *executions [(:id selected-graph)])
                              promise)
                            (p/finally promise #(reset! running false)))))
 

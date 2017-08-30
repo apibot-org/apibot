@@ -19,16 +19,18 @@
   (:require
     [apibot.api :as api]
     [apibot.auth0 :as auth0]
+    [apibot.coll :as coll]
     [apibot.mixpanel :as mixpanel]
+    [apibot.raven :as raven]
     [apibot.state :as state :refer [*app-state]]
+    [apibot.util :as util]
     [apibot.views.dialogs :as dialogs]
     [clojure.string :refer [starts-with?]]
     [goog.events :as events]
     [goog.history.EventType :as HistoryEventType]
     [promesa.core :as p]
     [reagent.session :as session]
-    [secretary.core :as secretary]
-    [apibot.raven :as raven])
+    [secretary.core :as secretary])
   (:import goog.History))
 
 (declare goto-editor)
@@ -69,6 +71,7 @@
                     (handle-request page-name)))
           (p/catch
             (fn [error]
+              (util/error error)
               (dialogs/show!
                 (dialogs/message-dialog
                   "Authentication Failed"
@@ -88,13 +91,27 @@
 (secretary/defroute
   "/editor" []
   (mixpanel/track :ev-page-editor)
+  (session/put! :graph-id nil)
+  (coll/reset-in! *app-state [:ui :selected-graph-id] nil)
   (handle-request :editor))
 
 (secretary/defroute
-  "/executions/:graph-id" [graph-id]
-  (mixpanel/track :ev-page-executions)
+  "/editor/:graph-id" [graph-id]
+  (mixpanel/track :ev-page-editor)
   (session/put! :graph-id graph-id)
+  (coll/reset-in! *app-state [:ui :selected-graph-id] graph-id)
+  (handle-request :editor))
+
+(secretary/defroute
+  "/executions" []
+  (mixpanel/track :ev-page-executions)
   (handle-request :executions))
+
+(secretary/defroute
+  "/executions/:execution-id" [execution-id]
+  (mixpanel/track :ev-page-execution {:execution-id execution-id})
+  (session/put! :execution-id execution-id)
+  (handle-request :execution))
 
 (secretary/defroute
   "/executables" []
@@ -131,8 +148,11 @@
 (defn current-page? [page]
   (starts-with? (-> js/window .-location .-hash) page))
 
-(defn goto-editor []
-  (goto "#editor"))
+(defn goto-editor [graph-id]
+  (goto (str "#editor/" graph-id)))
+
+(defn goto-executions []
+  (goto "#executions"))
 
 (defn goto-login []
   (goto "#login"))

@@ -3,4 +3,6 @@
 
 
 
- :auth0-audience "https://api.apibot.co"}
+ :auth0-audience "https://api.apibot.co"
+ :aws-lambda-api-url "https://beat9hjvm8.execute-api.us-east-1.amazonaws.com/prod/eval"
+ :aws-lambda-api-key "G8yfIriGvQ86d14LwFLVz2ey0qsdTYb22EMbktcW"}
