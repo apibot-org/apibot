@@ -37,6 +37,7 @@
   (p/promise
     (fn [resolve reject]
       (.parseHash web-auth
+                  (-> js/window .-location .-hash)
                   (fn [err auth-result]
                     (println "Handle Auth:" err auth-result)
                     (cond
