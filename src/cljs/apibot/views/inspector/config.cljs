@@ -4,9 +4,10 @@
     [apibot.grexec :as grexec]
     [apibot.grexec.config-node :as config-node]
     [apibot.coll :refer [remove-element-at]]
-    [apibot.views.commons :as commons  :refer [form-group-bindable input-bindable cursor-vec]]
+    [apibot.views.commons :as commons :refer [form-group-bindable input-bindable cursor-vec]]
     [cljs.spec.alpha :as s]
-    [reagent.core :refer [cursor]]))
+    [reagent.core :refer [cursor]]
+    [apibot.coll :as coll]))
 
 ;; --- Model ---
 
@@ -54,8 +55,6 @@
                                            prop-ratom])))]
     [:div
      [:form
-      [:div.help-block
-       [commons/link-docs "config"]]
       ;; The node's name
       [form-group-bindable
        {:name "Name" :spec ::grexec/name}
@@ -63,6 +62,7 @@
 
       ;; Render the list of props
       [:label "Props"]
+
       prop-forms
 
       ;; A button that adds a new empty config to the graph.

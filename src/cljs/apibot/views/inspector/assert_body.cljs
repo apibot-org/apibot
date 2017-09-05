@@ -4,20 +4,11 @@
     [apibot.grexec.assert-body-node :as assert-body-node]
     [apibot.views.code-editor :refer [create-editor]]
     [apibot.views.commons :as commons :refer [form-group-bindable]]
-    [clojure.string :refer [join]]
-    [reagent.core :refer [cursor]]))
+    [reagent.core :refer [cursor]]
+    [clojure.string :as string]
+    [apibot.coll :as coll]))
 
-(def sample
-  (join "\n"
-        ["/**"
-         " * Define a function in the global namespace"
-         " * @param body the last HTTP request's body as a map."
-         " * @param scope the scope"
-         " * @return a boolean value indicating wether the assertion passed or failed."
-         " */"
-         "(body, scope) => {"
-         "  return body.user_id != scope.user_id;"
-         "}"]))
+
 
 (def editor
   (create-editor
@@ -30,14 +21,12 @@
 (defn assert-body
   [node-ratom]
   [:form
-   [:div.help-block
-    [commons/link-docs "assert-body"]]
    (form-group-bindable
      {:name "Name"}
      (cursor node-ratom [:name]))
    (form-group-bindable
      {:name        "Error Template"
-      :placeholder "Expected :happy to be present but was '${happy}' instead."
+      :help        "The message to display in case the assertion fails."
       :spec        ::assert-body-node/template}
      (cursor node-ratom [:props :template]))
    [:div.form-group

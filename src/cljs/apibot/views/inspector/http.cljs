@@ -188,15 +188,12 @@
                                 *query-param])))
         *body (cursor *node [:props :body])]
     [:form
-     [:div.help-block
-      [commons/link-docs "http-request"]]
-
-     [:div.form-group
-      [:label "Import "]
-      [:p
-       [commons/button-swagger
-        {:on-click (fn [e] (dialogs/show! [dialog-swagger-import *node]))}
-        "Import from Swagger"]]]
+     #_[:div.form-group
+        [:label "Import "]
+        [:p
+         [commons/button-swagger
+          {:on-click (fn [e] (dialogs/show! [dialog-swagger-import *node]))}
+          "Import from Swagger"]]]
 
      [form-group-bindable {:name "Name"} (cursor *node [:name])]
      [form-group-bindable

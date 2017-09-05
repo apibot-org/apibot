@@ -120,8 +120,9 @@
        [:div.row
         [:div.col-md-4
          [:div.list-group
-          (for [step execution-steps]
-            #^{:key (:id step)}
-            [list-group-item step *selected-step])]]
+          (-> (for [step execution-steps]
+                #^{:key (:id step)}
+                [list-group-item step *selected-step])
+              (doall))]]
         [:div.col-md-8
          [execution-step-body *selected-step]]]])))

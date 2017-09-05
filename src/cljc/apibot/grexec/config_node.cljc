@@ -27,4 +27,6 @@
      :name     "Config"
      :desc     "Defines environment variables"
      :execfunc execute
+     :default-props {:config [{:key "root" :val "http://your.url.com"}
+                              {:key "api_key" :val "replace_with_your_api_key"}]}
      :spec     nil}))

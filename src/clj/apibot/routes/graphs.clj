@@ -1,13 +1,15 @@
-(ns apibot.routes.services
+(ns apibot.routes.graphs
   (:require
     [apibot.config :as config]
     [apibot.db.core :as db]
+    [apibot.grexec :as grexec]
+    [apibot.schemas :refer [Graph Execution]]
     [clojure.string :refer [split]]
     [clojure.tools.logging :as log]
     [compojure.api.sweet :refer :all]
     [ring.util.http-response :as response :refer :all]
-    [apibot.schemas :refer [Graph]]
-    [schema.core :as s]))
+    [schema.core :as s]
+    [apibot.graphs :as graphs]))
 
 (defapi api-graphs
   {:swagger {:ui   "/swagger/graphs"
@@ -44,4 +46,14 @@
         :body-params [graphs :- [Graph]]
         :summary "Sets a user's graphs"
         :query-params [user-id :- s/Str]
-        (ok {:graphs (db/set-graphs-by-user-id user-id graphs)})))))
+        (ok {:graphs (db/set-graphs-by-user-id user-id graphs)})))
+
+    (POST "/grexec/execute" []
+      :return Execution
+      :body-params [graphs :- [Graph] graph-id s/Str]
+      :summary "Executes the the graph with the given ID."
+      :query-params [user-id :- s/Str]
+      (if-let [graph (graphs/find-graph-by-id graph-id graph-id)]
+        (ok (grexec/execute! graphs graph))
+        (not-found {:message (str "Unable to find graph with id "
+                                  graph-id " in " (map :id graphs))})))))

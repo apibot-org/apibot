@@ -8,6 +8,7 @@
 (declare find-graph-by-id)
 (declare graph->node)
 (declare find-start-node)
+(declare singleton?)
 
 ;; ---- PROTOCOLS ----
 
@@ -24,14 +25,21 @@
   (label [this] name))
 
 (defrecord CustomGraph
-  [id name desc selected executable nodes edges]
+  [id name desc selected executable nodes edges default-props]
   Graph
   (editable? [this] true)
   (kind [this] "custom")
   (label [this]
-    (if (empty? (:name this))
-      (:name (find-start-node this) "")
-      (:name this))))
+    (cond
+      (not (empty? (:name this)))
+      (:name this)
+
+      (singleton? this)
+      (let [node (find-start-node this)]
+        (:name node ""))
+
+      :else
+      "")))
 
 ; ---- END PROTOCOLS ----
 
@@ -322,7 +330,7 @@
    :position nil
    :selected false
    :spec     (:spec graph)
-   :props    {}})
+   :props    (get graph :default-props {})})
 
 (defn append-exit-node
   "Appending an exit node means adding a node to the graph s.t. all leaf nodes

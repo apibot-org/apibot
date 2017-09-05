@@ -1,7 +1,8 @@
 (ns apibot.views.code-editor
   "Creates reagent code editor with support for multiple languages."
   (:require
-    [reagent.core :as reagent :refer [atom]]))
+    [reagent.core :as reagent :refer [atom]]
+    [apibot.util :as util]))
 
 (defn- find-language [lang]
   (case lang
@@ -17,22 +18,23 @@
 (defn create-editor
   "Options:
   - editor: a set of editor options.
-    - language: the language's editor
+    - language: the language's editor.
+    - init-value: the editor's initial value.
   - id (required) the editor's ID."
   [opts]
   {:pre [(contains? opts :id)]}
-  (let [editor-ratom (atom nil)
-        ;; XXX an (atom (atom text))
-        text-ratom (atom nil)
+  (let [; Holds a reference to the editor's state.
+        *editor (atom nil)
+        ; Holds an atom to the Editor's text ratom e.g. **text = (atom *text)
+        **text (atom nil)
         editor-opts (:editor opts)]
 
     (reagent/create-class
       {:should-component-update
-       (fn [this old [_ new-text-ratom]]
-         (when (not= @@text-ratom @new-text-ratom)
-           (reset! text-ratom new-text-ratom)
-           (-> @editor-ratom (set-value @new-text-ratom)))
-
+       (fn [this old [_ *new-text]]
+         (when (not= @@**text @*new-text)
+           (reset! **text *new-text)
+           (-> @*editor (set-value @*new-text)))
          false)
 
 
@@ -40,21 +42,20 @@
        (fn [this]
          (let [editor (.edit js/ace (:id opts))
                lang (find-language (:language editor-opts))]
-           (.setTheme editor "ace/theme/chrome")
-           (-> editor (.setOptions
-                        (clj->js {:maxLines                 20
-                                  :minLines                 3
-                                  :autoScrollEditorIntoView true})))
+           (-> editor (.setTheme "ace/theme/chrome"))
+           (-> editor (.setOptions #js {:maxLines                 20
+                                        :minLines                 3
+                                        :autoScrollEditorIntoView true}))
            (-> editor .getSession (.setMode lang))
            (-> editor .getSession (.setTabSize 2))
-           (-> editor .getSession (.on "change" (fn [e] (reset! @text-ratom (.getValue editor)))))
-           (-> editor (set-value @@text-ratom))
-           (reset! editor-ratom editor)))
+           (-> editor .getSession (.on "change" (util/throttle 200 #(reset! @**text (.getValue editor)))))
+           (-> editor (set-value @@**text))
+           (reset! *editor editor)))
 
        :component-will-unmount
        (fn [this])
 
        :reagent-render
-       (fn [text-ratom-prop]
-         (reset! text-ratom text-ratom-prop)
+       (fn [*text]
+         (reset! **text *text)
          [:div (dissoc opts :editor)])})))

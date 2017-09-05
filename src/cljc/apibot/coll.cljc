@@ -74,6 +74,12 @@
   [*value ks v]
   (swap! *value assoc-in ks v))
 
+(defn reset-if-nil!
+  "Sets the value for *value only if its current value is nil."
+  [*value default-val]
+  (when (nil? @*value)
+    (swap! *value #(or % default-val))))
+
 
 (defn swap-in!
   "Equivalent to swap! but takes a set of keys as the path to where the value will be set.

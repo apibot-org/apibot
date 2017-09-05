@@ -42,10 +42,34 @@
 
 ;; ---- View Config ----
 
+(def color-assert-body "#f0ad4e")
+(def color-assert-border "#eea236")
+(def style-assert {"background-color" color-assert-body
+                   "border-color"     color-assert-border})
+
+(def color-extract-body "#5bc0de")
+(def color-extract-border "#46b8da")
+(def style-extract {"background-color" color-extract-body
+                    "border-color"     color-extract-border})
+
+(def color-http-body "#5cb85c")
+(def color-http-border "#4cae4c")
+(def style-http {"background-color" color-http-body
+                 "border-color"     color-http-border})
+
+(def style-config
+  {"background-color" "#fff"
+   "border-color"     "#ddd"})
+
+(def style-custom
+  {"background-color" "#337ab7"
+   "border-color" "#2e6da4"})
+
 (def style
   [{"selector" "node"
     "style"    {"label"              "data(text)"
                 "background-color"   "#666"
+                "border-width"       2
                 "opacity"            "0.95"
                 "font-size"          "10px"
                 "text-wrap"          "wrap"
@@ -55,31 +79,37 @@
                 "text-outline-color" "#888"
                 "color"              "white"
                 "z-index"            0}}
-   {"selector" ":selected"
-    "style"    {"opacity"      "1"
-                "border-width" "2px"
-                "border-color" "black"
-                "z-index"      1}}
+
    {"selector" "node[type = 'custom']"
-    "style"    {"background-color" "#66A"}}
+    "style"    style-custom}
+   {"selector" "node[type = 'config']"
+    "style"    style-config}
+   {"selector" "node[type = 'csv']"
+    "style"    style-config}
    {"selector" "node[type = 'http-request']"
-    "style"    {"background-color" "#6A6"}}
+    "style"    style-http}
    {"selector" "node[type = 'assert']"
-    "style"    {"background-color" "#A66"}}
+    "style"    style-assert}
    {"selector" "node[type = 'assert-status']"
-    "style"    {"background-color" "#A66"}}
+    "style"    style-assert}
    {"selector" "node[type = 'assert-body']"
-    "style"    {"background-color" "#A66"}}
+    "style"    style-assert}
+   {"selector" "node[type = 'assert-headers']"
+    "style"    style-assert}
    {"selector" "node[type = 'eval']"
-    "style"    {"background-color" "#6AA"}}
+    "style"    style-extract}
    {"selector" "node[type = 'evaljs']"
-    "style"    {"background-color" "#6AA"}}
+    "style"    style-extract}
    {"selector" "node[type = 'extract-body']"
-    "style"    {"background-color" "#6AA"}}
+    "style"    style-extract}
+   {"selector" "node[type = 'extract-header']"
+    "style"    style-extract}
    {"selector" "edge"
     "css"      {"target-arrow-shape" "triangle"
                 "curve-style"        "bezier"
-                "background-color"   "#9d9d9d"}}])
+                "background-color"   "#9d9d9d"}}
+   {"selector" ":selected"
+    "style"    {"border-color" "#333"}}])
 
 (def layout
   {"name" "preset"})

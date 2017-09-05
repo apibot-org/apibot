@@ -3,7 +3,7 @@
     [apibot.env :refer [defaults]]
     [apibot.layout :refer [error-page]]
     [apibot.middleware :as middleware]
-    [apibot.routes.services :refer [api-graphs]]
+    [apibot.routes.graphs :refer [api-graphs]]
     [apibot.routes.executions :refer [api-executions]]
     [apibot.routes.users :refer [api-users]]
     [compojure.core :refer [routes wrap-routes defroutes GET]]

@@ -126,6 +126,11 @@
         (p/then :body))
     (p/promise {:removed 0})))
 
+(defn execute-graph
+  [graphs graph-id]
+  (assert (some? (graphs/find-graph-by-id graphs graph-id))
+          (str "graph-id (" graph-id ") should be present in graphs (" (map :id graphs ")"))))
+
 (defn insert-execution
   [execution]
   (api! {:http-method :post

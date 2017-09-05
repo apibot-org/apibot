@@ -4,7 +4,22 @@
     [apibot.graphs :refer [map->NativeGraph]]
     [apibot.grexec.executors :as executors]
     [apibot.grexec.eval :as eval]
-    [promesa.core :as p]))
+    [promesa.core :as p]
+    [clojure.string :as string]))
+
+(def doctext
+  (string/join "\n"
+               ["/**"
+                " * An evaljs function takes the scope as input"
+                " * and returns the new scope."
+                " * "
+                " * @return [Scope] the new scope."
+                " */"
+                "(scope) => {"
+                "  // Replace this with your own logic."
+                "  scope.email = 'random@email.tk';"
+                "  return scope;"
+                "}"]))
 
 ;; ---- API ----
 
@@ -22,10 +37,12 @@
                  "instead returned '" result "'.")))))))
 
 
+
 (def graph
   (map->NativeGraph
     {:id       "evaljs"
      :name     "Eval JavaScript"
      :desc     "Evaluates JavaScript"
      :execfunc (executors/wrap-with-try-catch execute executors/on-js-error)
+     :default-props {:fn doctext}
      :spec     nil}))

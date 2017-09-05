@@ -3,8 +3,12 @@
   (:require
     [apibot.grexec.evaljs-node :as evaljs-node]
     [apibot.views.code-editor :refer [create-editor]]
-    [apibot.views.commons :as commons  :refer [form-group-bindable]]
-    [reagent.core :refer [cursor]]))
+    [apibot.views.commons :as commons :refer [form-group-bindable]]
+    [reagent.core :refer [cursor]]
+    [clojure.string :as string]
+    [apibot.coll :as coll]))
+
+
 
 (def editor
   (create-editor
@@ -17,8 +21,6 @@
 (defn evaljs
   [node-ratom]
   [:form
-   [:div.help-block
-    [commons/link-docs "evaljs"]]
    (form-group-bindable
      {:name "Name"}
      (cursor node-ratom [:name]))

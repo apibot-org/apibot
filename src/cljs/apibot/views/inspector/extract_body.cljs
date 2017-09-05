@@ -3,8 +3,11 @@
   (:require
     [apibot.grexec.extract-body-node :as extract-body-node]
     [apibot.views.code-editor :refer [create-editor]]
-    [apibot.views.commons :as commons  :refer [form-group-bindable]]
-    [reagent.core :refer [cursor]]))
+    [apibot.views.commons :as commons :refer [form-group-bindable]]
+    [clojure.string :refer [join]]
+    [reagent.core :refer [cursor]]
+    [clojure.string :as string]
+    [apibot.coll :as coll]))
 
 (def editor
   (create-editor
@@ -17,13 +20,13 @@
 (defn extract-body
   [node-ratom]
   [:form
-   [:div.help-block
-    [commons/link-docs "extract-body"]]
    (form-group-bindable
      {:name "Name"}
      (cursor node-ratom [:name]))
    (form-group-bindable
-     {:name "Property Name"}
+     {:name "Property Name"
+      :spec ::extract-body-node/name
+      :help "Enter the name that the extracted property will have in the Scope."}
      (cursor node-ratom [:props :name]))
    [:div.form-group
     [:label {:for "extract-body-node-editor" :class "control-label"} "Function"]

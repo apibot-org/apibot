@@ -6,11 +6,13 @@
     [reagent.core :as reagent :refer [atom cursor]]
     [promesa.core :as p]))
 
-(defn link-docs [graph-name]
-  [:a
-   {:href   (str "http://apibot.co/docs/graphs/" (name graph-name))
-    :target "_blank"}
-   [:span.glyphicon.glyphicon-education {:aria-hidden true}] " Docs for " graph-name])
+(defn warning-sign [title message]
+  [:p.alert.alert-warning
+   {:role "alert"
+    :style {:margin-top "4px"}}
+   [:span.glyphicon.glyphicon-exclamation-sign]
+   [:b " " title]
+   message])
 
 (defn glyphicon-run []
   [:span.glyphicon.glyphicon-flash
@@ -81,11 +83,15 @@
   Special arguments:
   - :spec (optional) A spec can be supplied to add form validation
   - :name The field's name e.g. 'phone number'
+  - :help (optional) An optional help label (uses .help-block)
+  - :transform (optional) A function that takes the forms input as argument and transforms it
+                          useful for parsing numbers or keywords from the raw text input.
   "
   ([html-tag args ratom]
    (let [field-name (:name args)
          field-id (str (gensym field-name))
          spec (:spec args)
+         help-text (:help args)
          ;; Verify if the ratom conforms to the spec.
          opts (if (or (nil? spec) (s/valid? spec @ratom))
                 {:class ""}
@@ -96,8 +102,10 @@
       [input-bindable
        html-tag
        (merge {:class "form-control" :id field-id :placeholder field-name}
-              (dissoc args :spec))
-       ratom]]))
+              (dissoc args :spec :help))
+       ratom]
+      (when help-text
+        [:p.help-block help-text])]))
   ([args ratom]
    (form-group-bindable :input args ratom)))
 

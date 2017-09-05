@@ -46,8 +46,7 @@
      ;; The inspector
      (when *selected-graph
        [:div.col-xs-4
-        {:style {:padding-right "20px"
-                 :padding-top   "13px"
+        {:style {:padding-right "10px"
                  :overflow-y    "overlay"
                  :overflow-x    "hidden"
                  :max-height    "calc(100vh - 51px)"}}

@@ -8,8 +8,6 @@
 (defn assert-status
   [node-ratom]
   [:form
-   [:div.help-block
-    [commons/link-docs "assert-status"]]
    (form-group-bindable
      {:name "Name"}
      (cursor node-ratom [:name]))
@@ -17,6 +15,7 @@
      {:name        "Status From"
       :placeholder "E.g. 200"
       :type        "number"
+      :help        "Assert that the status is >= this number"
       :transform   #(if (empty? %) % (js/parseInt %))
       :spec        ::assert-status-node/from}
      (cursor node-ratom [:props :from]))
@@ -24,6 +23,7 @@
      {:name        "Status To"
       :placeholder "E.g. 299"
       :type        "number"
+      :help        "Assert that the status is <= this number"
       :transform   #(if (empty? %) % (js/parseInt %))
       :spec        ::assert-status-node/to}
      (cursor node-ratom [:props :to]))])

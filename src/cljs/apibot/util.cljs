@@ -12,8 +12,6 @@
   (cljs.core/js->clj x :keywordize-keys true))
 
 
-
-
 (defn puts
   "Prints and returns x. If a message is passed, the message is also printed."
   ([x]

@@ -3,8 +3,10 @@
   (:require
     [apibot.grexec.assert-node :as assert-node]
     [apibot.views.code-editor :refer [create-editor]]
-    [apibot.views.commons :as commons  :refer [form-group-bindable]]
-    [reagent.core :refer [cursor]]))
+    [apibot.views.commons :as commons :refer [form-group-bindable]]
+    [clojure.string :as string]
+    [reagent.core :refer [cursor]]
+    [apibot.coll :as coll]))
 
 ;
 (def editor
@@ -19,15 +21,14 @@
 (defn assert-view
   [node-ratom]
   [:form
-   [:div.help-block
-    [commons/link-docs "assert"]]
    (form-group-bindable
      {:name "Name"}
      (cursor node-ratom [:name]))
    (form-group-bindable
-     {:name        "Error Template"
-      :placeholder "Expected :happy to be present but was '${happy}' instead."
-      :spec        string?}
+     {:name        "Error Message"
+      :placeholder "E.g. expected user to be present but wasn't."
+      :spec        ::assert-node/template
+      :help        "The message to display in case the assertion fails."}
      (cursor node-ratom [:props :template]))
    [:div.form-group
     [:label {:for "eval-editor" :class "control-label"} "Function"]

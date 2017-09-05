@@ -6,9 +6,10 @@
 (defn init!
   "Initializes the raven SDK"
   []
-  (println "Sentry:" env/sentry-dsn)
-  (-> (.config raven env/sentry-dsn)
-      (.install)))
+  (when (= env/env :prod)
+    (println "Sentry:" env/sentry-dsn)
+    (-> (.config raven env/sentry-dsn)
+        (.install))))
 
 (defn capture-exception
   [error]

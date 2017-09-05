@@ -16,7 +16,8 @@
     [apibot.views.inspector.http :as inspector-http]
     [apibot.views.paper :as paper]
     [reagent.core :refer [cursor]]
-    [apibot.router :as router]))
+    [apibot.router :as router]
+    [apibot.coll :as coll]))
 
 (def paper-nested-graph (paper/create-paper-class "selected-nested-graph"))
 
@@ -24,7 +25,7 @@
   [*app-state *selected-node]
   (when-let [selected-node @*selected-node]
     (let [{:keys [graph-id name type]} selected-node
-          ; this is the graph that is being rendered in the inspector becaus the node is selected.
+          ; this is the graph that is being rendered in the inspector because the node is selected.
           *graph (commons/find-as-cursor *app-state [:graphs] #(= (:id %) graph-id))
           ; this is the graph that is being rendered in the editor.
           *selected-graph (commons/find-selected-graph-ratom *app-state)]
@@ -66,25 +67,47 @@
         ;; first and only node.
         (singleton? @*graph)
         [:div
-         [:div.alert.alert-warning
-          [:b "Note: "]
-          "This is a preview of " [:code name]
-          "'s contents. Changes on this node might affect other graphs."]
-         (render-selected-node *app-state (cursor *graph [:nodes 0]))]
+         (render-selected-node *app-state (cursor *graph [:nodes 0]))
+         [commons/warning-sign
+          "Note: "
+          [:span "This is a preview of " [:code name] "'s contents. Changes on this node might affect other graphs."]]]
 
         (> (count (:nodes @*graph)) 1)
         [:div
-         [:div.alert.alert-warning
-          [:b "Note: "]
-          "This is a preview of " [:code name] "'s contents"]
          [:div {:style {:pointer-events "none" :height "50vh"}}
           [paper-nested-graph *graph]]
+         [commons/warning-sign
+          "Note: "
+          [:span "This is a preview of " [:code name] "'s contents"]]
          [:button.btn.btn-default
           {:on-click #(router/goto-editor graph-id)}
           "Open " name]]
 
         :else
         [:p "No configuration available for " (:name @*selected-node)]))))
+
+
+(defn top-menu [*selected-graph *selected-node & forms]
+  (let [{:keys [id type]} @*selected-node]
+    [:div.row
+     {:style {:margin-right "-8px"
+              :margin-top "2px"}}
+     [:div.btn-group.pull-right
+      (when (not= "custom" type)
+        [:a.btn.btn-default
+         {:role "button"
+          :target "_blank"
+          :href (str "http://apibot.co/docs/graphs/" type)}
+         [:span.glyphicon.glyphicon-education]
+         " Docs"])
+      [:button.btn.btn-default
+       {:on-click #(coll/reset-in! *selected-node [:selected] false)}
+       [:span.glyphicon.glyphicon-remove-circle]
+       " Unselect"]
+      [:button.btn.btn-danger
+       {:on-click #(coll/swapr! *selected-graph graphs/remove-nodes-by-id id)}
+       [:span.glyphicon.glyphicon-trash]
+       " Delete"]]]))
 
 (defn inspector
   [*app-state *selected-graph]
@@ -97,7 +120,9 @@
 
       ;; Current Node Inspector
       (and *selected-graph (= 1 (count selected-nodes)))
-      (render-selected-node *app-state (first selected-nodes))
+      [:div
+       [top-menu *selected-graph (first selected-nodes)]
+       [render-selected-node *app-state (first selected-nodes)]]
 
       ;; Multiple Selected Nodes Inspector
       (and *selected-graph (< 1 (count selected-nodes)))
