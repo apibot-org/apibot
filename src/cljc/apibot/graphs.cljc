@@ -18,14 +18,14 @@
   (label [this]))
 
 (defrecord NativeGraph
-  [id name desc execfunc spec]
+  [id name desc execfunc spec default-props]
   Graph
   (editable? [this] false)
   (kind [this] id)
   (label [this] name))
 
 (defrecord CustomGraph
-  [id name desc selected executable nodes edges default-props]
+  [id name desc executable nodes edges]
   Graph
   (editable? [this] true)
   (kind [this] "custom")

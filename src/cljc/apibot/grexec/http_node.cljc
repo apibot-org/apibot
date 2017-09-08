@@ -77,6 +77,9 @@
      :name     "HTTP Request"
      :desc     "Makes an HTTP Request"
      :execfunc execute
+     :default-props {:http-method "GET"
+                     :headers []
+                     :query-params []}
      :spec     nil}))
 
 ;; ---- Swagger Import ----
