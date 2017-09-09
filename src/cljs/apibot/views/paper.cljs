@@ -7,15 +7,19 @@
     [apibot.coll :refer [swapr!]]
     [apibot.views.commons :refer [subscribe unsubscribe]]
     [reagent.core :as reagent :refer [atom create-class props]]
-    [apibot.views.dialogs :as dialogs]))
+    [apibot.views.dialogs :as dialogs]
+    [apibot.coll :as coll]))
 
 ;; ---- Model ----
 
-(defn send-graph-updates [cy selected-graph]
+(defn event->id [e]
+  (-> e .-cyTarget .id))
+
+(defn send-graph-updates [cy **selected-graph]
   (let [elements (-> (.json @cy)
                      (js->clj :keywordize-keys true)
                      (:elements))]
-    (swapr! @selected-graph graphs/cytoscape->graph elements)))
+    (swapr! @**selected-graph graphs/cytoscape->graph elements)))
 
 (defn duplicate-node
   "Given a cytoscape ele as argument, it clones the node and adds it to the graph."
@@ -233,32 +237,34 @@
 
 ;; ---- Initialize the Cytoscape Graph ----
 
-(defn- init-cytoscape [id cy selected-graph layout]
-  (let [cyto (js/cytoscape (clj->js (cytoscape-config id selected-graph layout)))]
+(defn- init-cytoscape [id cy **selected-graph layout]
+  (let [cyto (js/cytoscape (clj->js (cytoscape-config id **selected-graph layout)))]
     ;; Initialize the cxtmenu extension
-    (.cxtmenu cyto (clj->js (cxt-config cy selected-graph)))
+    (.cxtmenu cyto (clj->js (cxt-config cy **selected-graph)))
 
     ;; Initializing the edgehandles extension
-    (.edgehandles cyto (clj->js (edgehandles-config cy selected-graph)))
+    (.edgehandles cyto (clj->js (edgehandles-config cy **selected-graph)))
 
     ;; Register an on select node handler
     (.on cyto "select" "node"
          (fn [e]
-           (send-graph-updates cy selected-graph)))
+           (let [node-id (event->id e)]
+             (coll/swapr! @**selected-graph graphs/set-selected-node node-id true))))
 
-    (.on cyto "select" "edge"
+    #_(.on cyto "select" "edge"
          (fn [e]
-           (send-graph-updates cy selected-graph)))
+           (send-graph-updates cy **selected-graph)))
 
     ;; Register an on unselect node handler
     (.on cyto "unselect" "node"
          (fn [e]
-           (send-graph-updates cy selected-graph)))
+           (let [node-id (event->id e)]
+             (coll/swapr! @**selected-graph graphs/set-selected-node node-id false))))
 
     ;; Whenever a node is "freed" i.e. after dragging, update the position
     (.on cyto "free" "node"
          (fn [e]
-           (send-graph-updates cy selected-graph)))
+           (send-graph-updates cy **selected-graph)))
 
     (subscribe :fit-graph id (fn [_] (.fit cyto)))
 
@@ -271,7 +277,9 @@
         ;; Hold the cytoscape atom here, This will only be available after the
         ;; component has been mounted.
         cy (reagent/atom nil)
-
+        ;; A reference to the ID of the current selected graph, this is mostly meant as a means
+        ;; for determining when the graph being displayed changed.
+        *selected-graph-id (atom nil)
         ;; Hold an an atom of the selected graph's atom.
         ;; Yes, you read correctly, this is an (atom (atom graph))
         **selected-graph (reagent/atom nil)]
@@ -279,23 +287,25 @@
     (reagent/create-class
       {:should-component-update
        (fn [this [_ *old-graph] [_ *new-graph]]
-         ;; HACK:
-         ;; always prevent component updates and do the updates manually
-         ;; here.
-         (reset! **selected-graph *new-graph)
-         (let [cyto-graph (clj->js {:elements (graph->cytoscape @*new-graph)})]
-           (.json @cy cyto-graph))
+         (let [new-graph @*new-graph]
+           ;; HACK:
+           ;; always prevent component updates and do the updates manually
+           ;; here.
+           (reset! **selected-graph *new-graph)
+           (let [cyto-graph (clj->js {:elements (graph->cytoscape new-graph)})]
+             (.json @cy cyto-graph))
 
-         ;; if the user is switching graphs, fit it to the screen!
-         ;; and unselect all nodes.
-         (when (not= (:id @*old-graph) (:id @*new-graph))
-           (swapr! *new-graph graphs/unselect-nodes)
-           (.fit @cy))
+           ;; if the user is switching graphs, fit it to the screen!
+           ;; and unselect all nodes.
+           (when (not= @*selected-graph-id (:id new-graph))
+             (reset! *selected-graph-id (:id new-graph))
+             (swapr! *new-graph graphs/unselect-nodes)
+             (.fit @cy))
 
-         (when (graphs/singleton? @*new-graph)
-           (.fit @cy))
-         ;; return false indicating that this component doesn't need to update
-         false)
+           (when (graphs/singleton? new-graph)
+             (.fit @cy))
+           ;; return false indicating that this component doesn't need to update
+           false))
 
        :component-did-mount
        (fn [this]

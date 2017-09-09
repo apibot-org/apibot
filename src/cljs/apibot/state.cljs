@@ -1,8 +1,9 @@
 (ns apibot.state
   (:require
-    [reagent.core :refer [atom]]
+    [apibot.coll :as coll]
     [apibot.graphs :as graphs]
-    [apibot.coll :as coll]))
+    [apibot.views.commons :as commons]
+    [reagent.core :refer [atom cursor]]))
 
 
 (def sample-fetch-luke-skywalker
@@ -98,11 +99,43 @@
   "Stores the whole application's state"
   (atom
     {:graphs     []
+     :selected-graph-id nil
      :executions {}
      :execution-history []
-     :ui         {:selected-graph-id     nil
-                  :tasks-dialog-expanded true
+     :ui         {:tasks-dialog-expanded true
                   :bootstrapped          false}}))
+
+(def *graphs
+  "A cursor to the list of graphs"
+  (cursor *app-state [:graphs]))
+
+(def *selected-graph
+  "A cursor to the current selected graph."
+  ;; This cursor makes sure that the two paths are always consistent:
+  ;; - :selected-graph
+  ;; - the graph in :graphs that matches the :selected-graph
+  (cursor (fn ([_]
+               (let [{:keys [graphs selected-graph-id]} @*app-state]
+                 (graphs/find-graph-by-id selected-graph-id graphs)))
+              ([_ new-graph]
+               (swap! *app-state
+                 (fn [app-state new-selected-graph]
+                   (let [{:keys [graphs]} app-state]
+                     (assoc app-state :graphs (graphs/update-graph new-selected-graph graphs)
+                                      :selected-graph-id (:id new-selected-graph))))
+                 new-graph)))
+          [:selected-graph]))
+
+(defn reset-selected-graph-by-id! [graph-id]
+  ;; TODO this should be made atomic. If/when it is made atomic make sure to maintain
+  ;; consistency between the selected graph and the *graphs the same that that *selected-graph
+  ;; is maintaining it now i.e. by "re-saving" the *selected-graph into the *graphs.
+  (let [graph (graphs/find-graph-by-id graph-id @*graphs)]
+    (reset! *selected-graph graph)))
+
+(def *executions
+  "A cursor to the executions which are modelled as a map from graph-id => promise(execution result)."
+  (cursor *app-state [:executions]))
 
 (defn bootstrapped? []
   (get-in @*app-state [:ui :bootstrapped]))

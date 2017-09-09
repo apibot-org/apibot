@@ -11,18 +11,17 @@
 
 ;; ---- Model ----
 
-(def *loading-state (atom nil))
+(def *loading-state (atom {:state :pending}))
 
 (defn- fetch-executions
   [*execution-history]
   (let [promise (p/then (api/find-executions)
                         (fn [executions]
-                            (.log js/console executions)
                             (reset! *execution-history executions)))]
     (util/bind-promise! *loading-state promise)
     promise))
 
-(def throttled-fetch-executions (util/throttle 30000 fetch-executions))
+(def throttled-fetch-executions (util/throttle 10000 fetch-executions))
 
 ;; ---- Views ----
 

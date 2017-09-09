@@ -7,10 +7,11 @@
     [apibot.views.commons :as commons]
     [apibot.views.commons :refer [form-group-bindable glyphicon-run]]
     [apibot.views.dialogs :as dialogs]
+    [apibot.state :refer [*graphs]]
     [reagent.core :refer [cursor]]))
 
 (defn graph
-  [*app-state *graph]
+  [*graph]
   [:div
    (let [label (graphs/label @*graph)]
      [:h3.page-header
@@ -52,9 +53,7 @@
                  "Deleting a Graph"
                  [:span "Are you sure you want to delete " [:b (label @*graph)] "? This operation cannot be reverted."]
                  (fn []
-                   (let [*graphs (cursor *app-state [:graphs])]
-                     (reset! *graphs
-                             (remove-graph @*graph @*graphs)))))))}
+                     (reset! *graphs (remove-graph @*graph @*graphs))))))}
     [:span.glyphicon.glyphicon-trash]
     " Delete Graph"]
 

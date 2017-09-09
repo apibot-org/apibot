@@ -2,37 +2,32 @@
   "The toolbox is a set of tools that operate on the current graph,
   the most notable being the 'run' functionality"
   (:require
-    [apibot.graphs :as graphs]
-    [apibot.mixpanel :refer [trackfn]]
-    [apibot.grexec :as grexec]
-    [apibot.util :as util]
     [apibot.coll :as coll :refer [swapr!]]
+    [apibot.graphs :as graphs]
+    [apibot.grexec :as grexec]
+    [apibot.mixpanel :refer [trackfn]]
+    [apibot.router :as router]
+    [apibot.state :refer [*selected-graph *executions *graphs]]
+    [apibot.util :as util]
     [apibot.views.commons :refer [publish glyphicon-run]]
     [promesa.core :as p]
-    [reagent.core :refer [atom cursor]]
-    [apibot.router :as router]))
+    [reagent.core :refer [atom cursor]]))
 
-(defn button-add-new-graph [*app-state text]
-  (let [*graphs (cursor *app-state [:graphs])
-        *selected-graph-id (cursor *app-state [:ui :selected-graph-id])]
-    ; The New Graph Button
-    [:button.btn.btn-primary
-     {:on-click (trackfn :ev-toolbox-new-graph
-                         #(let [g (graphs/empty-graph)]
-                            (swap! *graphs conj g)
-                            (router/goto-editor (:id g))))}
-     [:span.glyphicon.glyphicon-plus {:aria-hidden "true"}]
-     (str " " text)]))
+(defn button-add-new-graph [*graphs text]
+  ; The New Graph Button
+  [:button.btn.btn-primary
+   {:on-click (trackfn :ev-toolbox-new-graph
+                       #(let [g (graphs/empty-graph)]
+                          (swap! *graphs conj g)
+                          (router/goto-editor (:id g))))}
+   [:span.glyphicon.glyphicon-plus {:aria-hidden "true"}]
+   (str " " text)])
 
 (defn toolbox
-  [*app-state]
-  (let [running (atom false)
-        graphs-ratom (cursor *app-state [:graphs])
-        *executions (cursor *app-state [:executions])]
+  []
+  (let [running (atom false)]
     (fn []
-      (let [selected-graph-id (get-in @*app-state [:ui :selected-graph-id])
-            graphs (:graphs @*app-state)
-            selected-graph (graphs/find-graph-by-id selected-graph-id graphs)]
+      (let [selected-graph @*selected-graph]
         [:div.btn-group
          {:style {:margin "2px"}}
          ; The Execute Graph Button
@@ -41,7 +36,7 @@
                      (trackfn :ev-toolbox-run-graph
                        (fn [e]
                          (reset! running true)
-                         (let [promise (grexec/execute! @graphs-ratom selected-graph)]
+                         (let [promise (grexec/execute! @*graphs selected-graph)]
                            (util/bind-promise!
                              (cursor *executions [(:id selected-graph)])
                              promise)
@@ -63,4 +58,4 @@
           [:span.glyphicon.glyphicon-resize-full {:aria-hidden "true"}] " Fit"]
 
          ; The New Graph Button
-         [button-add-new-graph *app-state "New Graph"]]))))
+         [button-add-new-graph *graphs "New Graph"]]))))

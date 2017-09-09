@@ -31,7 +31,7 @@
    [navbar/navbar *app-state]
    [tasks-dialog/tasks-dialog *app-state]
    [:div.container-fluid
-    [editor/editor (session/get :graph-id) *app-state]]])
+    [editor/editor *app-state]]])
 
 (defn executions-page []
   [:div

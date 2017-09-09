@@ -1,12 +1,13 @@
 (ns apibot.api
   (:require
+    [apibot.coll :as coll]
     [apibot.env :as env :refer [apibot-root]]
     [apibot.graphs :as graphs]
     [apibot.http :refer [http-request!]]
     [apibot.state :as state]
+    [apibot.state :refer [*graphs]]
     [apibot.storage :as storage]
     [apibot.util :as util]
-    [apibot.coll :as coll]
     [clojure.string :as s]
     [httpurr.status :as status]
     [promesa.core :as p]
@@ -151,13 +152,16 @@
 (defn sync-graphs
   "Updates and deletes graphs"
   [old-graphs new-graphs]
-  (let [ids-to-remove (graphs/find-removed old-graphs new-graphs)]
-    (p/all [(remove-graphs ids-to-remove)
-            (update-graphs new-graphs)])))
+  (let [ids-to-remove (graphs/find-removed old-graphs new-graphs)
+        graphs-to-update (graphs/find-updated old-graphs new-graphs)]
+    (when-not (empty? ids-to-remove)
+      (remove-graphs ids-to-remove))
+    (when-not (empty? graphs-to-update)
+      (update-graphs graphs-to-update))))
 
 (def sync-graphs-throttled
   "A throttled variant of the sync-graphs function."
-  (util/throttle 10000 #(sync-graphs %1 %2)))
+  (util/throttle-with-history 10000 #(sync-graphs (or %1 []) %2)))
 
 (defn bootstrap!
   "Bootstraps the app by loading all graphs owned by the user and registering a watch function
@@ -165,7 +169,7 @@
   ; XXX Probably not the best place to put this function...
   [*app-state]
   {:pre [(token?)]}
-  (let [*graphs (cursor *app-state [:graphs])]
+  (let []
     (p/then (fetch-graphs)
             (fn [graphs]
               (println (count graphs) "graphs loaded")
@@ -186,5 +190,7 @@
               (remove-watch *app-state :storage)
               (add-watch *app-state :storage
                          (fn [key ref old new]
-                           (sync-graphs-throttled (:graphs old) (:graphs new))))))))
+                           (sync-graphs-throttled (:graphs new))))))))
+
+
 

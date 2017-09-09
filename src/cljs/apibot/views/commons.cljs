@@ -8,7 +8,7 @@
 
 (defn warning-sign [title message]
   [:p.alert.alert-warning
-   {:role "alert"
+   {:role  "alert"
     :style {:margin-top "4px"}}
    [:span.glyphicon.glyphicon-exclamation-sign]
    [:b " " title]
@@ -143,12 +143,6 @@
                  (first))]
     (when pos
       (cursor *app-state (into ks [pos])))))
-
-(defn find-selected-graph-ratom
-  "Returns a ratom pointing to the selected graph, returns nil if there is no selected graph."
-  [*app-state]
-  (let [selected-graph-id (get-in @*app-state [:ui :selected-graph-id])]
-    (find-as-cursor *app-state [:graphs] #(= (:id %) selected-graph-id))))
 
 ;; ---- Pub Sub ----
 

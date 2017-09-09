@@ -405,10 +405,6 @@
   [predicate graph]
   (filter predicate (:edges graph)))
 
-(defn find-selected-nodes
-  [graph]
-  (filter :selected (:nodes graph)))
-
 (defn- expand-inner-graph
   [expandable-node inner-graph graphs graph]
   (let [;; A function which assigns random ids to x but always returns the same
@@ -515,6 +511,14 @@
                %))
        (into [])))
 
+(defn update-graph
+  "Updates the graph that matches graph's :id.
+  Returns a vector of graphs."
+  [graph graphs]
+  (map-graph-if #(= (:id %) (:id graph))
+                (fn [_] graph)
+                graphs))
+
 (defn find-graph-by-id
   "Finds a graph with the given ID."
   [id graphs]
@@ -536,4 +540,14 @@
   (let [new-ids (set (map :id new-graphs))]
     (->> (map :id old-graphs)
          (filter #(not (contains? new-ids %))))))
+
+(defn find-updated
+  "Given two snapshots of the graphs state, determines which graphs
+   were updated.
+   Returns the updated graphs"
+  [old-graphs new-graphs]
+  (let [old-graphs-by-id (group-by :id old-graphs)]
+    (filter (fn [new]
+              (not= new (first (get old-graphs-by-id (:id new)))))
+            new-graphs)))
 

@@ -2,7 +2,8 @@
   (:require
     [apibot.graphs :as graphs :refer [label editable?]]
     [apibot.coll :refer [swapr!]]
-    [apibot.views.commons :as commons :refer [cursor-vec glyphicon-run]]
+    [apibot.views.commons :as commons :refer [glyphicon-run]]
+    [apibot.state :refer [*graphs *selected-graph]]
     [clojure.string :as s]
     [reagent.core :as reagent :refer [atom cursor]]
     [apibot.router :as router]))
@@ -24,7 +25,6 @@
   [*selected-graph graph-to-add]
   (let [;; Create an instance of the graph
         node (graphs/graph->node graph-to-add)]
-    ;; TODO: check if this still works
     (swapr! *selected-graph graphs/conj-node node)))
 
 (defn matches-query?
@@ -38,13 +38,10 @@
 ;; ---- Views ----
 
 (defn tool-view
-  [*app-state graph]
+  [graph]
   (let [{:keys [id desc executable]} graph
         editable (editable? graph)
-        *graphs (cursor *app-state [:graphs])
-        *selected-graph-id (cursor *app-state [:ui :selected-graph-id])
-        *selected-graph (commons/find-selected-graph-ratom *app-state)
-        selected (= @*selected-graph-id (:id graph))]
+        selected (= (:id @*selected-graph) (:id graph))]
     [:div.list-group-item
      {:key   id
       :class (if selected "active" "")
@@ -61,8 +58,7 @@
        [:button.btn.btn-xs.btn-default
         {:on-click
                    (fn [e]
-                     (when *selected-graph
-                       (add-node-to-graph *selected-graph graph)))
+                     (add-node-to-graph *selected-graph graph))
          :disabled (or selected (not *selected-graph))}
         [:span.glyphicon.glyphicon-plus {:aria-hidden "true"}]
         "Add"]
@@ -82,8 +78,8 @@
           "Duplicate"])]]]))
 
 (defn tool-list
-  [*app-state *query]
-  (let [*graphs (cursor *app-state [:graphs])]
+  [*query]
+  (let []
     [:div.list-group
      {:style {:overflow-x "hidden"
               :overflow-y "overlay"
@@ -98,11 +94,11 @@
           (filter #(matches-query? @*query %))
           (map (fn [graph]
                  ^{:key (:id graph)}
-                 [tool-view *app-state graph]))
+                 [tool-view graph]))
           (doall))]))
 
 (defn stencil
-  [*app-state]
+  []
   (let [*query (atom "")]
     [:div
      ;; a search box for filtering tools.
@@ -113,4 +109,4 @@
                     (fn [e]
                       (reset! *query (-> e .-target .-value s/lower-case)))}]
      ;; Render the list of tools
-     [tool-list *app-state *query]]))
+     [tool-list *query]]))

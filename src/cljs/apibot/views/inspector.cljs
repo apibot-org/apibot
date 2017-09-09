@@ -17,18 +17,18 @@
     [apibot.views.paper :as paper]
     [reagent.core :refer [cursor]]
     [apibot.router :as router]
+    [apibot.state :refer [*selected-graph]]
     [apibot.coll :as coll]))
 
 (def paper-nested-graph (paper/create-paper-class "selected-nested-graph"))
 
 (defn render-selected-node
   [*app-state *selected-node]
+  (assert (some? *selected-node) "A nil node cannot be selected")
   (when-let [selected-node @*selected-node]
     (let [{:keys [graph-id name type]} selected-node
           ; this is the graph that is being rendered in the inspector because the node is selected.
-          *graph (commons/find-as-cursor *app-state [:graphs] #(= (:id %) graph-id))
-          ; this is the graph that is being rendered in the editor.
-          *selected-graph (commons/find-selected-graph-ratom *app-state)]
+          *graph (commons/find-as-cursor *app-state [:graphs] #(= (:id %) graph-id))]
       (cond
         (= type "http-request")
         (inspector-http/http *selected-node)
@@ -104,19 +104,19 @@
        {:on-click #(coll/reset-in! *selected-node [:selected] false)}
        [:span.glyphicon.glyphicon-remove-circle]
        " Unselect"]
-      [:button.btn.btn-danger
+      [:button.btn.btn-default
        {:on-click #(coll/swapr! *selected-graph graphs/remove-nodes-by-id id)}
        [:span.glyphicon.glyphicon-trash]
        " Delete"]]]))
 
 (defn inspector
-  [*app-state *selected-graph]
+  [*app-state]
   (let [selected-nodes (->> (cursor-vec *selected-graph [:nodes])
                             (filter (comp :selected deref)))]
     (cond
       ;; Current Graph inspector
       (and *selected-graph (= 0 (count selected-nodes)))
-      [inspector-graph/graph *app-state *selected-graph]
+      [inspector-graph/graph *selected-graph]
 
       ;; Current Node Inspector
       (and *selected-graph (= 1 (count selected-nodes)))

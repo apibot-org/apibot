@@ -92,14 +92,14 @@
   "/editor" []
   (mixpanel/track :ev-page-editor)
   (session/put! :graph-id nil)
-  (coll/reset-in! *app-state [:ui :selected-graph-id] nil)
+  (state/reset-selected-graph-by-id! nil)
   (handle-request :editor))
 
 (secretary/defroute
   "/editor/:graph-id" [graph-id]
   (mixpanel/track :ev-page-editor)
   (session/put! :graph-id graph-id)
-  (coll/reset-in! *app-state [:ui :selected-graph-id] graph-id)
+  (state/reset-selected-graph-by-id! graph-id)
   (handle-request :editor))
 
 (secretary/defroute
