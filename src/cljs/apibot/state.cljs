@@ -102,6 +102,7 @@
      :selected-graph-id nil
      :executions {}
      :execution-history []
+     :execution-history>filter-graph-id nil
      :ui         {:tasks-dialog-expanded true
                   :bootstrapped          false}}))
 
@@ -136,6 +137,10 @@
 (def *executions
   "A cursor to the executions which are modelled as a map from graph-id => promise(execution result)."
   (cursor *app-state [:executions]))
+
+(def *execution-history>filter-graph-id
+  "A cursor to the graph-id used to filter executions."
+  (cursor *app-state [:execution-history>filter-graph-id]))
 
 (defn bootstrapped? []
   (get-in @*app-state [:ui :bootstrapped]))

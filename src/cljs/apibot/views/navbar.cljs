@@ -38,15 +38,16 @@
        [:li {:class (active-class-if-page "#executions")}
         [:a
          {:href "#executions"}
-         [:span.glyphicon.glyphicon-th-list] " Execution History"]]
+         [:span.glyphicon.glyphicon-th-list] " Execution History"]]]
 
+
+      [:ul.nav.navbar-nav.navbar-right
        [:li
         [:a
          {:href   "http://apibot.co/docs"
           :target "_blank"}
-         [:span.glyphicon.glyphicon-education] " Documentation"]]]
+         [:span.glyphicon.glyphicon-education] " Docs"]]
 
-      [:ul.nav.navbar-nav.navbar-right
        [:li
         [:a
          {:role     "button"

@@ -102,6 +102,7 @@
                        (filter #(= (:id %) execution-id))
                        (first))
         execution-steps (:history execution)
+        graph-id (:graph-id execution)
         *selected-step (atom (first execution-steps))]
     (if (empty? execution-steps)
       [view-load-execution execution-id *app-state]
@@ -109,7 +110,7 @@
        [:div.page-header {:style {:margin-top "20px"}}
         [:div.btn-group.pull-right
          [:button.btn.btn-default
-          {:on-click (fn [] (router/goto-executions))}
+          {:on-click #(router/goto-executions {:graph-id graph-id})}
           [:span.glyphicon.glyphicon-th-list]
           " Execution History"]
          [:button.btn.btn-primary

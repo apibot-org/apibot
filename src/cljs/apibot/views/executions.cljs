@@ -6,8 +6,10 @@
     [apibot.util :as util]
     [apibot.views.commons :as commons]
     [apibot.views.executables :as executables]
+    [apibot.state :refer [*execution-history>filter-graph-id]]
     [promesa.core :as p]
-    [reagent.core :refer [atom cursor]]))
+    [reagent.core :refer [atom cursor]]
+    [apibot.router :as router]))
 
 ;; ---- Model ----
 
@@ -21,7 +23,13 @@
     (util/bind-promise! *loading-state promise)
     promise))
 
-(def throttled-fetch-executions (util/throttle 10000 fetch-executions))
+(def throttled-fetch-executions (util/throttle 5000 fetch-executions))
+
+(defn filter-execution
+  [execution]
+  (if-let [graph-id @*execution-history>filter-graph-id]
+    (= (:graph-id execution) graph-id)
+    true))
 
 ;; ---- Views ----
 
@@ -42,7 +50,13 @@
       " Loading..."]
      [:button.btn.btn-default
       {:on-click #(fetch-executions *execution-history)}
-      "Refresh"]]])
+      [:span.glyphicon.glyphicon-refresh]
+      " Refresh"]]
+   (when (some? @*execution-history>filter-graph-id)
+     [:button.btn.btn-default
+      {:on-click #(router/goto-executions)}
+      [:span.glyphicon.glyphicon-list-alt]
+      " Show All"])])
 
 (defn executions
   [*app-state]
@@ -58,8 +72,11 @@
         [:th "Result"]
         [:th "Created At"]]]
       [:tbody
-       (->> (for [execution @*execution-history]
-              ^{:key (:id execution)} [table-row execution])
+       (->> @*execution-history
+            (filter filter-execution)
+            (map (fn [execution]
+                  ^{:key (:id execution)} [table-row execution]))
+            (sort-by :created-at)
             (doall))]]]))
 
 

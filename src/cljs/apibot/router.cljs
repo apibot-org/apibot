@@ -22,7 +22,7 @@
     [apibot.coll :as coll]
     [apibot.mixpanel :as mixpanel]
     [apibot.raven :as raven]
-    [apibot.state :as state :refer [*app-state]]
+    [apibot.state :as state :refer [*app-state *execution-history>filter-graph-id]]
     [apibot.util :as util]
     [apibot.views.dialogs :as dialogs]
     [clojure.string :refer [starts-with?]]
@@ -103,7 +103,9 @@
   (handle-request :editor))
 
 (secretary/defroute
-  "/executions" []
+  "/executions" [query-params]
+  (let [{:keys [graph-id]} query-params]
+    (reset! *execution-history>filter-graph-id graph-id))
   (mixpanel/track :ev-page-executions)
   (handle-request :executions))
 
@@ -142,8 +144,12 @@
 
 ;; ---- Route Helpers ----
 
-(defn goto [url]
-  (aset (-> js/window .-location) "hash" url))
+(defn goto
+  ([url]
+   (aset (-> js/window .-location) "hash" url))
+  ([url query-map]
+   (goto (str url (util/to-query-params query-map)))))
+
 
 (defn current-page? [page]
   (starts-with? (-> js/window .-location .-hash) page))
@@ -151,8 +157,11 @@
 (defn goto-editor [graph-id]
   (goto (str "#editor/" graph-id)))
 
-(defn goto-executions []
-  (goto "#executions"))
+(defn goto-executions
+  ([{:keys [graph-id]}]
+   (goto "#executions" {:graph-id graph-id}))
+  ([]
+   (goto "#executions")))
 
 (defn goto-login []
   (goto "#login"))

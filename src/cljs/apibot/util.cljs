@@ -12,6 +12,20 @@
   [x]
   (cljs.core/js->clj x :keywordize-keys true))
 
+(defn to-query-params
+  "Converts a map to a query string. The resulting string always begins with '?'
+
+  Example:
+
+  (to-query-params {:foo 1 :bar true})
+  '?foo=1&bar=true'"
+  [m]
+  (->> m
+       (map (fn [[key val]]
+             (str (js/encodeURIComponent (name key)) "="
+                  (js/encodeURIComponent val))))
+       (join "&")
+       (str "?")))
 
 (defn puts
   "Prints and returns x. If a message is passed, the message is also printed."
@@ -82,19 +96,22 @@
   [millis handler]
   (let [*state (atom {:current-value  nil
                       :previous-value nil
+                      :last-executed-at 0
                       :timeout-id     nil})]
     (fn [value]
       (coll/reset-in! *state [:current-value] value)
-      (if (nil? (:timeout-id @*state))
+      (when (nil? (:timeout-id @*state))
         (let [timeoutfunc (fn []
                             (let [{:keys [current-value previous-value]} @*state]
                               (handler previous-value current-value)
                               (reset! *state {:current-value  current-value
                                               :previous-value current-value
+                                              :last-executed-at (.getTime (new js/Date))
                                               :timeout-id     nil})))
-              millis (if (nil? (:previous-value @*state))
-                       0 millis)
-              new-timeout-id (js/setTimeout timeoutfunc millis)]
+              new-millis (max (- (+ (:last-executed-at @*state) millis)
+                                 (.getTime (new js/Date)))
+                              0)
+              new-timeout-id (js/setTimeout timeoutfunc new-millis)]
           (coll/reset-in! *state [:timeout-id] new-timeout-id))))))
 
 (defn throttle
