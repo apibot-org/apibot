@@ -186,7 +186,8 @@
                                 *query-params
                                 index
                                 *query-param])))
-        *body (cursor *node [:props :body])]
+        *body (cursor *node [:props :body])
+        *url (cursor *node [:props :url])]
     [:form
      #_[:div.form-group
         [:label "Import "]
@@ -198,8 +199,10 @@
      [form-group-bindable {:name "Name"} (cursor *node [:name])]
      [form-group-bindable
       {:name "Url"
+       :help (when (re-find #"[^$]\{.+\}|^\{.+\}" @*url)
+              [:span "Use the " [:code "${variable}"] "or " [:code "${variable.inner}"] " syntax to access variables in the scope."])
        :spec ::http-node/url}
-      (cursor *node [:props :url])]
+      *url]
 
      [:label "Query Params "]
      query-param-forms
