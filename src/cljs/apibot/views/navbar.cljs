@@ -1,12 +1,13 @@
 (ns apibot.views.navbar
   "The global navbar."
   (:require
-    [apibot.graphs :as graphs]
+    [apibot.auth0 :as auth0]
     [apibot.env :as env]
-    [reagent.core :refer [cursor]]
+    [apibot.graphs :as graphs]
     [apibot.router :as router]
+    [apibot.state :refer [*selected-graph]]
     [apibot.views.commons :refer [glyphicon-run]]
-    [apibot.auth0 :as auth0]))
+    [reagent.core :refer [cursor]]))
 
 (defn active-class-if-page [page]
   (if (router/current-page? page)
@@ -26,7 +27,7 @@
 
        [:li {:class (active-class-if-page "#editor")}
         [:a
-         {:href "#editor"}
+         {:href (str "#editor/" (:id @*selected-graph))}
          [:span.glyphicon.glyphicon-edit] " Editor"]]
 
        [:li {:class (active-class-if-page "#executables")}
