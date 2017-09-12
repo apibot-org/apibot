@@ -199,7 +199,7 @@
      [form-group-bindable {:name "Name"} (cursor *node [:name])]
      [form-group-bindable
       {:name "Url"
-       :help (when (re-find #"[^$]\{.+\}|^\{.+\}" @*url)
+       :help (when (re-find #"[^$]\{.+\}|^\{.+\}" (or @*url ""))
               [:span "Use the " [:code "${variable}"] "or " [:code "${variable.inner}"] " syntax to access variables in the scope."])
        :spec ::http-node/url}
       *url]
