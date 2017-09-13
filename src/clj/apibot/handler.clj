@@ -3,8 +3,9 @@
     [apibot.env :refer [defaults]]
     [apibot.layout :refer [error-page]]
     [apibot.middleware :as middleware]
-    [apibot.routes.graphs :refer [api-graphs]]
     [apibot.routes.executions :refer [api-executions]]
+    [apibot.routes.graphs :refer [api-graphs]]
+    [apibot.routes.projects :refer [api-projects]]
     [apibot.routes.users :refer [api-users]]
     [compojure.core :refer [routes wrap-routes defroutes GET]]
     [compojure.route :as route]
@@ -20,10 +21,11 @@
 
 (def app-routes
   (routes
-    #'home-routes
-    #'api-users
-    #'api-graphs
     #'api-executions
+    #'api-graphs
+    #'api-projects
+    #'api-users
+    #'home-routes
     (route/not-found
       (:body
         (error-page {:status 404

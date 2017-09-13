@@ -1,8 +1,37 @@
 (ns apibot.graphs
   "Common functions that deal with graphs."
   (:require
-    [clojure.string :refer [join]]
-    [promesa.core :as p]))
+    [#?(:cljs cljs.spec.alpha :clj clojure.spec.alpha) :as spec]
+    [clojure.string :as s :refer [join]]
+    [promesa.core :as p]
+    [apibot.coll :as coll]))
+
+
+;; ---- Specs ----
+
+(spec/def ::id coll/non-empty-string?)
+(spec/def ::source coll/non-empty-string?)
+(spec/def ::target coll/non-empty-string?)
+(spec/def ::name string?)
+(spec/def ::desc string?)
+(spec/def ::executable boolean?)
+(spec/def ::projects (spec/every string? :kind set?))
+(spec/def ::node map?)
+(spec/def ::nodes (spec/every ::node :kind vector?))
+(spec/def ::edge (spec/keys :req-un [::id ::source ::target]))
+(spec/def ::edges (spec/every ::edge :kind vector?))
+
+(spec/def ::custom-graph
+  (spec/keys :req-un
+             [::id
+              ::name
+              ::desc
+              ::executable
+              ::projects
+              ::nodes
+              ::edges]))
+
+;; ---- End Specs ----
 
 (declare flatten-graph)
 (declare find-graph-by-id)
@@ -25,7 +54,7 @@
   (label [this] name))
 
 (defrecord CustomGraph
-  [id name desc executable nodes edges]
+  [id name desc executable projects nodes edges]
   Graph
   (editable? [this] true)
   (kind [this] "custom")
@@ -40,6 +69,20 @@
 
       :else
       "")))
+
+(spec/fdef map->CustomGraph
+           :args (spec/cat :map ::custom-graph))
+
+(defn create-custom-graph [{:keys [id name desc executable projects nodes edges]}]
+  (map->CustomGraph
+    {:id         id
+     :name       name
+     :desc       desc
+     :executable executable
+     :projects   (set projects)
+     :nodes      (vec nodes)
+     :edges      (vec edges)}))
+
 
 ; ---- END PROTOCOLS ----
 
@@ -173,6 +216,9 @@
   [executable graph]
   (assoc graph :executable executable))
 
+(defn with-project [project-id graph]
+  (update-in graph [:projects] conj project-id))
+
 (defn find-start-node
   "Finds the starting node (or nil if not found)"
   [graph]
@@ -241,10 +287,11 @@
 (defn empty-graph
   "Creates a new empty graph."
   []
-  (map->CustomGraph
+  (create-custom-graph
     {:id         (uuid!)
      :name       ""
      :desc       ""
+     :projects   (set [])
      :executable false
      :nodes      []
      :edges      []}))
@@ -500,6 +547,27 @@
             (recur result
                    visited
                    (conj tail head))))))))
+
+
+(defn in-project?
+  "Determines if the given graph is part of the given project"
+  [project-id graph]
+  (cond
+    (not (editable? graph))
+    true
+    (= project-id "default")
+    true
+    :else
+    (contains? (:projects graph) project-id)))
+
+
+(defn matches-query?
+  [query graph]
+  (let [name (s/lower-case (or (label graph) ""))
+        desc (s/lower-case (or (:desc graph) ""))]
+    (or (empty? query)
+        (s/includes? name query)
+        (s/includes? desc query))))
 
 ;; ---- Graphs (plural) ----
 

@@ -1,14 +1,11 @@
 (ns apibot.core
   (:require
-    [apibot.api :as api]
-    [apibot.auth0 :as auth0]
+    [apibot.coll :as coll]
     [apibot.grexec :as grexec]
     [apibot.mixpanel :as mixpanel]
     [apibot.raven :as raven]
     [apibot.router :as router]
     [apibot.state :refer [*app-state]]
-    [apibot.storage :as storage]
-    [apibot.coll :as coll]
     [apibot.views.dialogs :as dialogs]
     [apibot.views.editor :as editor]
     [apibot.views.executables :as executables]
@@ -17,12 +14,11 @@
     [apibot.views.loading :as loading]
     [apibot.views.login :as login]
     [apibot.views.navbar :as navbar]
+    [apibot.views.project :as project]
     [apibot.views.tasks-dialog :as tasks-dialog]
     [cljsjs.papaparse]
-    [promesa.core :as p]
     [reagent.core :as reagent :refer [atom cursor]]
-    [reagent.session :as session]
-    [secretary.core :as secretary :include-macros true]))
+    [reagent.session :as session]))
 
 ;; ---- Views ----
 
@@ -51,6 +47,12 @@
    [:div.container-fluid
     [executables/executables *app-state]]])
 
+(defn project-page [& args]
+  [:div
+   [navbar/navbar *app-state]
+   [:div.container-fluid
+    [project/project]]])
+
 (defn login-page [& args]
   [:div {:style {:background "url('img/robo-pattern.jpeg')"
                  :height "100vh"}}
@@ -71,6 +73,7 @@
    :execution   #'execution-page
    :executables #'executables-page
    :login       #'login-page
+   :project     #'project-page
    :loading     #'loading-page})
 
 (defn page []

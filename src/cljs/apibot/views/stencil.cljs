@@ -3,7 +3,7 @@
     [apibot.graphs :as graphs :refer [label editable?]]
     [apibot.coll :refer [swapr!]]
     [apibot.views.commons :as commons :refer [glyphicon-run]]
-    [apibot.state :refer [*graphs *selected-graph]]
+    [apibot.state :refer [*graphs *selected-graph *selected-project]]
     [clojure.string :as s]
     [reagent.core :as reagent :refer [atom cursor]]
     [apibot.router :as router]))
@@ -26,14 +26,6 @@
   (let [;; Create an instance of the graph
         node (graphs/graph->node graph-to-add)]
     (swapr! *selected-graph graphs/conj-node node)))
-
-(defn matches-query?
-  [query graph]
-  (let [name (s/lower-case (or (label graph) ""))
-        desc (s/lower-case (or (:desc graph) ""))]
-    (or (empty? query)
-        (s/includes? name query)
-        (s/includes? desc query))))
 
 ;; ---- Views ----
 
@@ -90,8 +82,9 @@
      ;; And the list of tools.
      (->> @*graphs
           (sort-by graph-comparator)
+          (filter #(graphs/in-project? (:id @*selected-project) %))
           (filter #(not (contains? #{"skippable"} (:id %))))
-          (filter #(matches-query? @*query %))
+          (filter #(graphs/matches-query? @*query %))
           (map (fn [graph]
                  ^{:key (:id graph)}
                  [tool-view graph]))

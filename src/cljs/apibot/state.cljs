@@ -3,15 +3,16 @@
     [apibot.coll :as coll]
     [apibot.graphs :as graphs]
     [apibot.views.commons :as commons]
-    [reagent.core :refer [atom cursor]]))
+    [reagent.core :refer [atom cursor track]]))
 
 
 (def sample-fetch-luke-skywalker
-  (graphs/map->CustomGraph
+  (graphs/create-custom-graph
     {:id         (graphs/uuid!)
      :name       "sample: fetch luke skywalker"
      :desc       "This sample graph shows the basics of making an HTTP request and asserting over the HTTP response."
      :executable true
+     :projects   (set [])
      :edges      [{:id     "sample-fetch-luke-skywalker-edge-0"
                    :source "sample-fetch-luke-skywalker-node-config"
                    :target "sample-fetch-luke-skywalker-node-http-request"}
@@ -43,11 +44,12 @@
                    :type     "assert-body"}]}))
 
 (def sample-fetch-dagobah
-  (graphs/map->CustomGraph
-    {:id        (graphs/uuid!)
+  (graphs/create-custom-graph
+    {:id         (graphs/uuid!)
      :desc       "This sample graph shows you how to chain requests and extract content from the request to create powerful assertions."
      :name       "sample: fetch dagobah"
      :executable true
+     :projects   (set [])
      :nodes
                  [{:name     "Config"
                    :type     "config"
@@ -98,17 +100,32 @@
 (def *app-state
   "Stores the whole application's state"
   (atom
-    {:graphs     []
-     :selected-graph-id nil
-     :executions {}
-     :execution-history []
+    {:graphs                            []
+     :selected-graph-id                 nil
+     :executions                        {}
+     :execution-history                 []
+     :projects                          {"default" {:id "default" :name "Apibot"}}
+     :selected-project-id               "default"
      :execution-history>filter-graph-id nil
-     :ui         {:tasks-dialog-expanded true
-                  :bootstrapped          false}}))
+     :ui                                {:tasks-dialog-expanded true
+                                         :bootstrapped          false}}))
+
 
 (def *graphs
   "A cursor to the list of graphs"
   (cursor *app-state [:graphs]))
+
+
+(defn find-graph-cursor
+  "Returns a cursor to the graph with the given ID"
+  [graph-id]
+  (cursor (fn ([_]
+               (graphs/find-graph-by-id graph-id @*graphs))
+              ([_ graph]
+               (coll/swapr! *graphs graphs/update-graph graph)))
+          []))
+
+
 
 (def *selected-graph
   "A cursor to the current selected graph."
@@ -118,14 +135,56 @@
   (cursor (fn ([_]
                (let [{:keys [graphs selected-graph-id]} @*app-state]
                  (graphs/find-graph-by-id selected-graph-id graphs)))
-              ([_ new-graph]
-               (swap! *app-state
-                 (fn [app-state new-selected-graph]
-                   (let [{:keys [graphs]} app-state]
-                     (assoc app-state :graphs (graphs/update-graph new-selected-graph graphs)
-                                      :selected-graph-id (:id new-selected-graph))))
-                 new-graph)))
+            ([_ new-graph]
+             (swap! *app-state
+                    (fn [app-state new-selected-graph]
+                      (let [{:keys [graphs]} app-state]
+                        (assoc app-state :graphs (graphs/update-graph new-selected-graph graphs)
+                                         :selected-graph-id (:id new-selected-graph))))
+                    new-graph)))
           [:selected-graph]))
+
+(def *projects
+  "A cursor to a map of project ID => project. For a list of projects see *project-list below."
+  (cursor *app-state [:projects]))
+
+(defn reset-projects
+  "Takes a list of projects as input and updates all projects (preserving the default project)"
+  [projects]
+  (assert (not (map? projects)) "projects must be a list, not a map")
+  (let [project-index (->> projects
+                           (filter #(not= (:id %) "default"))
+                           (coll/index :id))]
+    (swap! *projects (fn [projects-old projects-new]
+                       (assoc projects-new "default" (get projects-old "default")))
+                     project-index)))
+
+(defn add-project
+  "Adds a new empty project with the given name. Returns the created project."
+  [name]
+  (let [new-project {:name name
+                     :id   (graphs/uuid!)}]
+    (coll/reset-in! *app-state [:projects (:id new-project)] new-project)
+    new-project))
+
+
+(def *project-list
+  "A list of projects owned by the user."
+  (track #(vals @*projects)))
+
+
+(def *selected-project
+  "The current selected project"
+  (cursor (fn ([_]
+               (let [{:keys [projects selected-project-id]} @*app-state]
+                 (get projects selected-project-id)))
+            ([_ project]
+             (swap! *app-state
+                    (fn [app-state]
+                      (-> (assoc-in app-state [:projects (:id project)] project)
+                          (assoc :selected-project-id (:id project)))))))
+          []))
+
 
 (defn reset-selected-graph-by-id! [graph-id]
   ;; TODO this should be made atomic. If/when it is made atomic make sure to maintain

@@ -25,6 +25,7 @@
    (s/optional-key :user-id) (s/maybe s/Str)
    :desc                     s/Str
    :edges                    [Edge]
+   :projects                 [s/Str]
    :executable               s/Bool
    :nodes                    [Node]
    :name                     s/Str})
@@ -56,3 +57,8 @@
    :name s/Str
    :created-at s/Num
    :result {:failed s/Bool}})
+
+(s/defschema Project
+  "A project is a central place for expressing common properties about graphs"
+  {:id s/Str
+   :name s/Str})

@@ -59,7 +59,9 @@
           (p/then (mixpanel/trackfn :ev-bootstrap-success
                                     #(session/put! :page page-name)))
           (p/catch (mixpanel/trackfn :ev-bootstrap-failed
-                                     #(session/put! :page :login)))))
+                                     (fn [error]
+                                       (println "Error:" error)
+                                       (session/put! :page :login))))))
 
     :else
     (do
@@ -126,6 +128,13 @@
   (session/put! :page :login))
 
 (secretary/defroute
+  "/projects/:project-id" [project-id]
+  (coll/reset-in! *app-state [:selected-project-id] project-id)
+  (session/put! :page :project)
+  (handle-request :project))
+
+
+(secretary/defroute
   "*" []
   (mixpanel/track :ev-page-unknown {:hash (-> js/window .-location .-hash)})
   (println "Handle *")
@@ -154,14 +163,29 @@
 (defn current-page? [page]
   (starts-with? (-> js/window .-location .-hash) page))
 
-(defn goto-editor [graph-id]
-  (goto (str "#editor/" graph-id)))
+
+(defn goto-editor
+  ([graph-id]
+   (goto (str "#editor/" graph-id)))
+  ([]
+   (goto "#editor")))
+
 
 (defn goto-executions
   ([{:keys [graph-id]}]
    (goto "#executions" {:graph-id graph-id}))
   ([]
    (goto "#executions")))
+
+
+(defn goto-project
+  [project-id]
+  (goto (str "#projects/" project-id)))
+
+
+(defn in-projects? []
+  (current-page? "#projects"))
+
 
 (defn goto-login []
   (goto "#login"))

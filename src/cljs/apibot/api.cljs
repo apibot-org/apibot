@@ -37,11 +37,12 @@
 (defn graph->remote-graph
   "Maps a graph to match the remote model"
   [graph]
-  (let [{:keys [id desc edges executable nodes name]} graph]
+  (let [{:keys [id desc edges executable nodes name projects]} graph]
     {:id         id
      :desc       (or desc "")
      :edges      edges
      :executable executable
+     :projects   projects
      :nodes      (map node->remote-node nodes)
      :name       (or name "")}))
 
@@ -99,7 +100,8 @@
     (fn [response]
       (->> (:body response)
            (:graphs)
-           (map graphs/map->CustomGraph)))))
+           (map #(update % :projects set))
+           (map graphs/create-custom-graph)))))
 
 (defn update-graphs
   "Fires an HTTP request to update the user's graphs.
@@ -163,6 +165,30 @@
   "A throttled variant of the sync-graphs function."
   (util/throttle-with-history 10000 #(sync-graphs (or %1 []) %2)))
 
+(defn fetch-projects
+  []
+  "Finds all projects owned by the given user"
+  (-> (api! {:http-method :get
+             :url (str apibot-root "/projects/")})
+      (p/then :body)))
+
+
+(defn save-project
+  "Saves the given project"
+  [project]
+  (assert (not= (:id project) "default") "Cannot save the default project")
+  (-> (api! {:http-method :put
+             :url         (str apibot-root "/projects/")
+             :headers     {:content-type "application/json"}
+             :body        {:project project}})
+      (p/then :body)))
+
+
+(defn remove-project [project-id]
+  (-> (api! {:http-method :delete
+             :url (str apibot-root "/projects/" project-id)})
+      :body))
+
 (defn bootstrap!
   "Bootstraps the app by loading all graphs owned by the user and registering a watch function
   over the *app-state"
@@ -170,9 +196,9 @@
   [*app-state]
   {:pre [(token?)]}
   (let []
-    (p/then (fetch-graphs)
-            (fn [graphs]
-              (println (count graphs) "graphs loaded")
+    (p/then (p/all [(fetch-graphs) (fetch-projects)])
+            (fn [[graphs projects]]
+              (println (count graphs) "graphs loaded, " (count projects) " projects loaded")
               (swap! *graphs
                      (fn [existing-graphs loaded-graphs]
                        (->> (filter #(not (graphs/editable? %)) existing-graphs)
@@ -181,6 +207,7 @@
                                       loaded-graphs))
                             (into [])))
                      graphs)
+              (state/reset-projects projects)
 
 
               (println "Registering watch function over *app-state")

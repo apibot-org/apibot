@@ -16,6 +16,21 @@
         (dissoc key-old))))
 
 
+(defn index
+  "Let x be an item in coll. Returns a map from (f x) => x for every x in coll.
+
+  Example:
+
+  (index :id [{:id 1 :name 'foo'} {:id 2 :name 'bar'}])
+  => {1 {:id 1 :name 'foo'}
+      2 {:id 2 :name 'bar'}}"
+  [f coll]
+  (reduce (fn [red curr]
+            (assoc red (f curr) curr))
+          {}
+          coll))
+
+
 (defn map-vals
   "Given a map f as argument, maps all keys in the map to (f %)"
   [m f]
@@ -28,6 +43,13 @@
   (if (>= n (count string))
     string
     (str (subs string 0 n) append)))
+
+
+(defn non-empty-string?
+  "Returns true iff x is a non-empty string."
+  [x]
+  (and (string? x) (not (empty? x))))
+
 
 
 (defn remove-element-at
@@ -73,12 +95,6 @@
   ```"
   [*value ks v]
   (swap! *value assoc-in ks v))
-
-(defn reset-if-nil!
-  "Sets the value for *value only if its current value is nil."
-  [*value default-val]
-  (when (nil? @*value)
-    (swap! *value #(or % default-val))))
 
 
 (defn swap-in!

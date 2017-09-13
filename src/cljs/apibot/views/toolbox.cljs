@@ -7,7 +7,7 @@
     [apibot.grexec :as grexec]
     [apibot.mixpanel :refer [trackfn]]
     [apibot.router :as router]
-    [apibot.state :refer [*selected-graph *executions *graphs]]
+    [apibot.state :refer [*selected-graph *executions *graphs *selected-project]]
     [apibot.util :as util]
     [apibot.views.commons :refer [publish glyphicon-run]]
     [promesa.core :as p]
@@ -17,7 +17,8 @@
   ; The New Graph Button
   [:button.btn.btn-primary
    {:on-click (trackfn :ev-toolbox-new-graph
-                       #(let [g (graphs/empty-graph)]
+                       #(let [g (->> (graphs/empty-graph)
+                                     (graphs/with-project (:id @*selected-project)))]
                           (swap! *graphs conj g)
                           (router/goto-editor (:id g))))}
    [:span.glyphicon.glyphicon-plus {:aria-hidden "true"}]

@@ -6,16 +6,12 @@
     [apibot.router :as router]
     [apibot.util :as util]
     [apibot.coll :as coll]
+    [apibot.state :refer [*graphs *selected-project]]
     [apibot.views.commons :as commons :refer [glyphicon-run input-bindable]]
     [clojure.string :refer [lower-case]]
     [reagent.core :refer [cursor atom]]))
 
 ;; ---- Model ----
-
-(defn filter-executables
-  [graphs]
-  (->> (filter graphs/executable? graphs)
-       (sort-by (comp lower-case label))))
 
 (defn clear-non-pending-executions!
   [*executions]
@@ -86,36 +82,47 @@
 
 (defn executables
   [*app-state]
-  (let [graphs-cursors (commons/cursor-vec *app-state [:graphs])
-        executable-graphs-cursors (->> graphs-cursors
-                                       (filter (comp graphs/executable? deref))
-                                       (sort-by (comp graphs/label deref)))
+  (let [graphs @*graphs
+        executable-graphs (->> graphs
+                               (filter #(graphs/in-project? (:id @*selected-project) %))
+                               (filter graphs/executable?)
+                               (sort-by graphs/label))
         *executions (cursor *app-state [:executions])]
     [:div.row
      [:div.btn-group
       {:style {:padding "4px"}}
+
+      ;; -- button run all --
       [:button.btn.btn-primary
        {:type     "button"
         :title    "Executes all graphs, except those that are currently being executed."
-        :on-click (fn [e] (run-graphs! *app-state (map deref executable-graphs-cursors)))}
+        :on-click (fn [e] (run-graphs! *app-state executable-graphs))}
        [glyphicon-run]
        "Run all"]
+
+      ;; -- button run failed --
       [:button.btn.btn-default
        {:type     "button"
         :title    "Executes all graphs which have a failed status."
         :on-click (fn [e] (run-graphs! *app-state (find-graphs-with-failed-executions *app-state)))}
        [glyphicon-run]
        "Retry failed"]
+
+      ;; -- TODO implement --
       [:button.btn.btn-default
        {:type     "button"
         :style    {:display "none"}
         :on-click (fn [e] (export-results! *executions))}
        "Export Results"]
+
+      ;; -- button clear results --
       [:button.btn.btn-default
        {:type     "button"
         :title    "Clear all execution results."
         :on-click (fn [e] (clear-non-pending-executions! *executions))}
        "Clear results"]]
+
+     ;; -- table executable graphs --
      [:table.table.table-hover
       [:thead
        [:tr
@@ -123,12 +130,12 @@
         [:th "Status"]]]
       [:tbody
        (doall
-         (for [*graph executable-graphs-cursors]
-           (let [graph-id (:id @*graph)
+         (for [graph executable-graphs]
+           (let [graph-id (:id graph)
                  *bound-promise (cursor *executions [graph-id])]
              [:tr {:key graph-id}
               [:td {:style {:width "40%"}}
                [glyphicon-run]
-               [:a {:href (str "#editor/" graph-id)} (label @*graph)]]
+               [:a {:href (str "#editor/" graph-id)} (label graph)]]
               [:td
                [execution-result-view graph-id *bound-promise]]])))]]]))

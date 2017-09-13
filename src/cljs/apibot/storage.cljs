@@ -1,7 +1,5 @@
 (ns apibot.storage
-  (:refer-clojure :exclude [atom])
   (:require
-    [apibot.graphs :refer [editable? map->CustomGraph]]
     [reagent.core :refer [cursor]]
     [clojure.string :refer [join]]))
 
