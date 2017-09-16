@@ -55,6 +55,8 @@
                                            prop-ratom])))]
     [:div
      [:form
+      [:h4 "Node " [:span.text-info "Config"]]
+      [:p.help-block "Appends named values to the scope. Useful for setting variables."]
       ;; The node's name
       [form-group-bindable
        {:name "Name" :spec ::grexec/name}

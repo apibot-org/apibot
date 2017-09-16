@@ -2,9 +2,11 @@
   "Common functions that deal with graphs."
   (:require
     [#?(:cljs cljs.spec.alpha :clj clojure.spec.alpha) :as spec]
+    [apibot.coll :as coll]
+    [apibot.nodes :as nodes]
+    [clojure.set :as sets]
     [clojure.string :as s :refer [join]]
-    [promesa.core :as p]
-    [apibot.coll :as coll]))
+    [promesa.core :as p]))
 
 
 ;; ---- Specs ----
@@ -17,9 +19,9 @@
 (spec/def ::executable boolean?)
 (spec/def ::projects (spec/every string? :kind set?))
 (spec/def ::node map?)
-(spec/def ::nodes (spec/every ::node :kind vector?))
+(spec/def ::nodes (spec/and (spec/every ::node :kind vector?)))
 (spec/def ::edge (spec/keys :req-un [::id ::source ::target]))
-(spec/def ::edges (spec/every ::edge :kind vector?))
+(spec/def ::edges (spec/and (spec/every ::edge :kind vector?)))
 
 (spec/def ::custom-graph
   (spec/keys :req-un
@@ -65,7 +67,7 @@
 
       (singleton? this)
       (let [node (find-start-node this)]
-        (:name node ""))
+        (nodes/label node ""))
 
       :else
       "")))
@@ -219,6 +221,9 @@
 (defn with-project [project-id graph]
   (update-in graph [:projects] conj project-id))
 
+(defn with-nodes [nodes graph]
+  (assoc graph :nodes (vec nodes)))
+
 (defn find-start-node
   "Finds the starting node (or nil if not found)"
   [graph]
@@ -308,31 +313,21 @@
   (graph->node skippable-graph))
 
 
-(defn node->cyto [node]
-  "Converts a node into a cytoscape node. If the node's position is not defined,
-  then the node is placed at a randomly chosen renderedPosition close to the
-  top left corner."
-  (let [position (:position node)
-        cyto-node {:group "nodes"
-                   :data  {:id   (:id node)
-                           :text (:name node)
-                           :type (:type node)
-                           ;; TODO: write a proper serialize-node function.
-                           :node node}}
-        pos-key (if position :position :renderedPosition)
-        pos-val (or position {:x (+ (rand-int 20) 90)
-                              :y (+ (rand-int 20) 90)})]
-    (assoc cyto-node pos-key pos-val)))
+
+(defn dag? [graph]
+  ; The graph must have only one connected component.
+  (= 1 (count (connected-components graph)))
+  ; The graph cannot have loops.
+  (loopless? graph))
+
 
 (defn executable?
   "Determines if the given graph is in an executable state."
   [graph]
-  (and                                                      ; The graph must be explicitly marked as executable.
+  (and
+    ; The graph must be explicitly marked as executable.
     (:executable graph)
-    ; The graph must have only one connected component.
-    (= 1 (count (connected-components graph)))
-    ; The graph cannot have loops.
-    (loopless? graph)))
+    (dag? graph)))
 
 
 (defn- edge->cyto [edge]
@@ -344,15 +339,14 @@
   "Converts an apibot graph to a cytoscape graph"
   [graph]
   (->>
-    (concat (map node->cyto (:nodes graph))
+    (concat (map nodes/node->cyto (:nodes graph))
             (map edge->cyto (:edges graph)))
     (into [])))
 
-(defn cyto->node [{:keys [data position selected]}]
+(defn cyto->node [{:keys [data position]}]
   (let [{:keys [node text id]} data]
     (assoc node
       :name text
-      :selected (or selected false)
       :position position)))
 
 (defn- cyto->edge [edge]
@@ -436,17 +430,6 @@
              (into []))]
     (assoc graph :nodes new-nodes)))
 
-(defn set-selected-node
-  [node-id selected graph]
-  (map-nodes (fn [node]
-               (if (= (:id node) node-id)
-                 (assoc node :selected selected)
-                 node))
-             graph))
-
-(defn unselect-nodes
-  [graph]
-  (map-nodes #(assoc % :selected false) graph))
 
 (defn find-edges
   [predicate graph]
@@ -568,6 +551,58 @@
     (or (empty? query)
         (s/includes? name query)
         (s/includes? desc query))))
+
+
+(defn group-nodes-by-height
+  "Returns a map of {height [nodes]} where height => [nodes] means that all nodes
+  have the given height (relative to the 'start-node')."
+  [graph]
+  (let [find-height (memoize
+                      (fn height [node]
+                        (let [preds (predecessors node graph)]
+                          (if (empty? preds)
+                            0
+                            (+ 1 (apply max (map height preds)))))))]
+    (group-by find-height (:nodes graph))))
+
+
+(defn sort-nodes-by-family [nodes graph]
+  (sort-by (fn [node]
+             (let [preds (predecessors node graph)
+                   x (->> preds
+                          (map :position)
+                          (map :x)
+                          (apply min))]
+               (into [x] (map :id preds))))
+           nodes))
+
+
+(defn prettify
+  "Makes this graph pretty."
+  [graph]
+  (if (<= (count-nodes graph) 1)
+    ;; If the graph has zero or 1 nodes it is always formatted
+    graph
+    (let [dist-x 100
+          dist-y 45
+          start-node (find-start-node graph)
+          nodes-by-height (group-nodes-by-height graph)
+          widest-level (apply max (keys nodes-by-height))
+          formatted-nodes
+          (mapcat (fn [[level nodes-in-level]]
+                    (let [pad (/ (* dist-x
+                                    (- widest-level
+                                       (count nodes-in-level)))
+                                 2)]
+                      (map-indexed (fn [i node]
+                                     (-> (assoc-in node [:position :x] (+ pad (* i dist-x)))
+                                         (assoc-in [:position :y] (* dist-y level))))
+                                   (sort-nodes-by-family nodes-in-level graph))))
+                  nodes-by-height)]
+      (with-nodes formatted-nodes graph))))
+
+(spec/fdef prettify
+           :args (spec/cat :graph (spec/and ::custom-graph dag?)))
 
 ;; ---- Graphs (plural) ----
 

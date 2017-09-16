@@ -99,7 +99,7 @@
            [:b "Parsing Error: "]
            "Unable to parse the provided Swagger JSON, please make sure you are providing JSON."]
           [:p.help-block "Copy and paste the complete swagger .json in the text box above or "
-           [:a {:href "http://apibot.co/docs/tutorials/swagger-import" :target "_blank"} "click here for help"]"."])]
+           [:a {:href "http://apibot.co/docs/tutorials/swagger-import" :target "_blank"} "click here for help"] "."])]
        [:div
         [:button.btn.btn-secondary
          {:type "button" :on-click #(dialogs/hide!)}
@@ -196,11 +196,13 @@
           {:on-click (fn [e] (dialogs/show! [dialog-swagger-import *node]))}
           "Import from Swagger"]]]
 
-     [form-group-bindable {:name "Name"} (cursor *node [:name])]
+     [:h4 "Node " [:span.text-info "HTTP Request"]]
+     [:p.help-block "Performs an HTTP request, appends both the request and response to the Scope."
+      " Use the " [:code "${fieldName}"] " syntax to access values in the scope."]
      [form-group-bindable
       {:name "Url"
        :help (when (re-find #"[^$]\{.+\}|^\{.+\}" (or @*url ""))
-              [:span "Use the " [:code "${variable}"] "or " [:code "${variable.inner}"] " syntax to access variables in the scope."])
+               [:span "Use the " [:code "${variable}"] "or " [:code "${variable.inner}"] " syntax to access variables in the scope."])
        :spec ::http-node/url}
       *url]
 

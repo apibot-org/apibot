@@ -17,7 +17,7 @@
     [apibot.views.paper :as paper]
     [reagent.core :refer [cursor]]
     [apibot.router :as router]
-    [apibot.state :refer [*selected-graph]]
+    [apibot.state :refer [*selected-graph *selected-node-ids]]
     [apibot.coll :as coll]))
 
 (def paper-nested-graph (paper/create-paper-class "selected-nested-graph"))
@@ -111,8 +111,8 @@
 
 (defn inspector
   [*app-state]
-  (let [selected-nodes (->> (cursor-vec *selected-graph [:nodes])
-                            (filter (comp :selected deref)))]
+  (let [selected-nodes (apibot.state/selected-nodes-cursors)]
+
     (cond
       ;; Current Graph inspector
       (and *selected-graph (= 0 (count selected-nodes)))

@@ -176,6 +176,11 @@
        (apply dissoc m)))
 
 
+(defn subcoll
+  "Returns a lazy sequence with the first n items in coll or all if (>= n (count coll)"
+  [n coll]
+  (map (fn [x _] x) coll (range n)))
+
 (defn positions
   [pred coll]
   (assert (vector? coll)

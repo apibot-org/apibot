@@ -40,4 +40,5 @@
      :name     "Assert Status"
      :desc     "Performs an assertion over the status of the last HTTP request"
      :execfunc execute
+     :default-props {:from 200 :to 299}
      :spec     nil}))

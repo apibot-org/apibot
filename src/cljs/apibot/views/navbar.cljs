@@ -53,7 +53,7 @@
         :on-mouse-leave #(reset! *show-projects-dropdown false)}
        [:a.dropdown-toggle
         {:role     "button"
-         :on-click #(swap! *show-projects-dropdown not)}
+         :on-click #(router/goto-project (:id @*selected-project))}
         (:name @*selected-project) " " [:span.caret]]
 
        ;; -- dropdown menu --

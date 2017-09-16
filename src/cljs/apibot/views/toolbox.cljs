@@ -26,7 +26,7 @@
 
 (defn toolbox
   []
-  (let [running (atom false)]
+  (let [*running (atom false)]
     (fn []
       (let [selected-graph @*selected-graph]
         [:div.btn-group
@@ -36,18 +36,18 @@
           {:on-click
                      (trackfn :ev-toolbox-run-graph
                        (fn [e]
-                         (reset! running true)
+                         (reset! *running true)
                          (let [promise (grexec/execute! @*graphs selected-graph)]
                            (util/bind-promise!
                              (cursor *executions [(:id selected-graph)])
                              promise)
-                           (p/finally promise #(reset! running false)))))
+                           (p/finally promise #(reset! *running false)))))
 
            :disabled (or (nil? selected-graph)
                          (not (graphs/executable? selected-graph))
-                         @running)}
+                         @*running)}
           [glyphicon-run]
-          (if @running
+          (if @*running
             " Running..."
             " Run")]
 
@@ -57,6 +57,15 @@
            :type     "button"
            :disabled (nil? selected-graph)}
           [:span.glyphicon.glyphicon-resize-full {:aria-hidden "true"}] " Fit"]
+
+         ; The Format Graph button
+         ; TODO iron out the bugs and re-enable
+         ;[:button.btn.btn-default
+         ;   {:on-click (trackfn :ev-toolbox-format-graph #(publish :format-graph nil))
+         ;    :type     "button"
+         ;    :disabled (or (nil? selected-graph)
+         ;                  (not (graphs/loopless? selected-graph)))}
+         ;   [:span.glyphicon.glyphicon-sort {:aria-hidden "true"}] " Format"]
 
          ; The New Graph Button
          [button-add-new-graph *graphs "New Graph"]]))))

@@ -20,9 +20,8 @@
 (defn extract-body
   [node-ratom]
   [:form
-   (form-group-bindable
-     {:name "Name"}
-     (cursor node-ratom [:name]))
+   [:h4 "Node " [:span.text-info "Extract Body"]]
+   [:p.help-block "Extracts a value from the last request's HTTP body"]
    (form-group-bindable
      {:name "Property Name"
       :spec ::extract-body-node/name

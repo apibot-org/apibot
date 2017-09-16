@@ -144,6 +144,15 @@
     (when pos
       (cursor *app-state (into ks [pos])))))
 
+(defn find-as-cursors
+  "Assuming that the path app-state > ks leads to a vector, returns a coll of cursors s.t.
+  each cursor maps to an item in the vector which matches the predicate pred."
+  [*app-state ks pred]
+  (assert (vector? ks))
+  (->> (get-in @*app-state ks)
+       (coll/positions pred)
+       (map #(cursor *app-state (conj ks %)))))
+
 ;; ---- Pub Sub ----
 
 (def listeners (clojure.core/atom {}))

@@ -20,11 +20,11 @@
                        (not (empty? val)))))
 (s/def ::headers (s/* ::header))
 (s/def ::props
-  (s/keys :req [::http-method
-                ::url
-                ::body
-                ::headers
-                ::query-params]))
+  (s/keys :req-un [::http-method
+                   ::url
+                   ::body
+                   ::headers
+                   ::query-params]))
 
 ;; ---- API ----
 

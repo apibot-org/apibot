@@ -8,9 +8,8 @@
 (defn assert-status
   [node-ratom]
   [:form
-   (form-group-bindable
-     {:name "Name"}
-     (cursor node-ratom [:name]))
+   [:h4 "Node " [:span.text-info "Assert Status"]]
+   [:p.help-block "Performs an assertion over the last HTTP request's status code."]
    (form-group-bindable
      {:name        "Status From"
       :placeholder "E.g. 200"

@@ -93,16 +93,14 @@
 (secretary/defroute
   "/editor" []
   (mixpanel/track :ev-page-editor)
-  (session/put! :graph-id nil)
   (state/reset-selected-graph-by-id! nil)
   (handle-request :editor))
 
 (secretary/defroute
   "/editor/:graph-id" [graph-id]
   (mixpanel/track :ev-page-editor)
-  (session/put! :graph-id graph-id)
-  (state/reset-selected-graph-by-id! graph-id)
-  (handle-request :editor))
+  (handle-request :editor)
+  (state/reset-selected-graph-by-id! graph-id))
 
 (secretary/defroute
   "/executions" [query-params]

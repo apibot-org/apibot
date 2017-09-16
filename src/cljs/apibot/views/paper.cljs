@@ -8,6 +8,7 @@
     [apibot.views.commons :refer [subscribe unsubscribe]]
     [reagent.core :as reagent :refer [atom create-class props]]
     [apibot.views.dialogs :as dialogs]
+    [apibot.state :refer [*selected-node-ids]]
     [apibot.coll :as coll]))
 
 ;; ---- Model ----
@@ -48,40 +49,50 @@
 
 (def color-assert-body "#f0ad4e")
 (def color-assert-border "#eea236")
-(def style-assert {"background-color" color-assert-body
-                   "border-color"     color-assert-border})
+(def style-assert {"background-color"   color-assert-body
+                   "text-outline-color" color-assert-border
+                   "border-color"       color-assert-border})
 
 (def color-extract-body "#5bc0de")
 (def color-extract-border "#46b8da")
-(def style-extract {"background-color" color-extract-body
-                    "border-color"     color-extract-border})
+(def style-extract {"background-color"   color-extract-body
+                    "text-outline-color" color-extract-border
+                    "border-color"       color-extract-border})
 
 (def color-http-body "#5cb85c")
 (def color-http-border "#4cae4c")
-(def style-http {"background-color" color-http-body
-                 "border-color"     color-http-border})
+(def style-http {"background-color"   color-http-body
+                 "text-outline-color" color-http-border
+                 "border-color"       color-http-border})
 
 (def style-config
-  {"background-color" "#fff"
-   "border-color"     "#ddd"})
+  {"background-color"   "#fff"
+   "text-outline-color" "#ddd"
+   "color"              "#333"
+   "border-color"       "#ddd"})
 
 (def style-custom
-  {"background-color" "#337ab7"
-   "border-color" "#2e6da4"})
+  {"background-color"   "#337ab7"
+   "text-outline-color" "#2e6da4"
+   "border-color"       "#2e6da4"})
 
 (def style
   [{"selector" "node"
     "style"    {"label"              "data(text)"
                 "background-color"   "#666"
                 "border-width"       2
-                "opacity"            "0.95"
-                "font-size"          "10px"
+                "opacity"            "1"
+                "color"              "#eee"
+                "shape"              "roundrectangle"
+                "width"              "label"
+                "height"             "label"
+                "padding"            "4px"
+                "font-size"          "12px"
                 "text-wrap"          "wrap"
-                "text-max-width"     "100px"
+                "font-family"        "monospace"
+                "text-max-width"     "150px"
                 "text-valign"        "center"
-                "text-outline-width" 1
-                "text-outline-color" "#888"
-                "color"              "white"
+                "text-outline-width" "2px"
                 "z-index"            0}}
 
    {"selector" "node[type = 'custom']"
@@ -111,6 +122,7 @@
    {"selector" "edge"
     "css"      {"target-arrow-shape" "triangle"
                 "curve-style"        "bezier"
+                "width"              "2px"
                 "background-color"   "#9d9d9d"}}
    {"selector" ":selected"
     "style"    {"border-color" "#333"}}])
@@ -245,21 +257,19 @@
     ;; Initializing the edgehandles extension
     (.edgehandles cyto (clj->js (edgehandles-config cy **selected-graph)))
 
-    ;; Register an on select node handler
     (.on cyto "select" "node"
          (fn [e]
            (let [node-id (event->id e)]
-             (coll/swapr! @**selected-graph graphs/set-selected-node node-id true))))
+             (swap! *selected-node-ids conj node-id))))
 
-    #_(.on cyto "select" "edge"
+    (.on cyto "select" "edge"
          (fn [e]
-           (send-graph-updates cy **selected-graph)))
+           (reset! *selected-node-ids #{})))
 
-    ;; Register an on unselect node handler
     (.on cyto "unselect" "node"
          (fn [e]
            (let [node-id (event->id e)]
-             (coll/swapr! @**selected-graph graphs/set-selected-node node-id false))))
+             (swap! *selected-node-ids disj node-id))))
 
     ;; Whenever a node is "freed" i.e. after dragging, update the position
     (.on cyto "free" "node"
@@ -267,6 +277,10 @@
            (send-graph-updates cy **selected-graph)))
 
     (subscribe :fit-graph id (fn [_] (.fit cyto)))
+    (subscribe :format-graph (str "format-graph-" id)
+               (fn [_]
+                 (swap! @**selected-graph graphs/prettify)
+                 (.fit cyto)))
 
     (reset! cy cyto)))
 
@@ -299,7 +313,7 @@
            ;; and unselect all nodes.
            (when (not= @*selected-graph-id (:id new-graph))
              (reset! *selected-graph-id (:id new-graph))
-             (swapr! *new-graph graphs/unselect-nodes)
+             (reset! *selected-node-ids #{})
              (.fit @cy))
 
            (when (graphs/singleton? new-graph)

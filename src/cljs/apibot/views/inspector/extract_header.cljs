@@ -18,9 +18,6 @@
   [node-ratom]
   [:form
    (form-group-bindable
-     {:name "Name"}
-     (cursor node-ratom [:name]))
-   (form-group-bindable
      {:name "Header Name"
       :spec ::extract-header-node/header
       :help "Enter the name of the HTTP header you want to extract e.g. x-api-token."}

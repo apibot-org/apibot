@@ -32,7 +32,7 @@
                    :name     "HTTP Request"
                    :position {:x 100
                               :y 180}
-                   :props    {:url "${root}/people/1"}
+                   :props    {:url "${root}/people/1" :http-method "GET"}
                    :type     "http-request"}
                   {:graph-id "assert-body"
                    :id       "sample-fetch-luke-skywalker-node-assert-body"
@@ -62,7 +62,7 @@
                    :id       "sample-fetch-luke-skywalker-node-http-request"
                    :graph-id "http-request"
                    :position {:y 160, :x 100}
-                   :props    {:url "${root}/planets/"}}
+                   :props    {:url "${root}/planets/" :http-method "GET"}}
                   {:name     "Extract the third planet"
                    :type     "extract-body"
                    :id       "9cf90d35-e6ba-4346-8896-caf798f33358"
@@ -74,7 +74,7 @@
                    :id       "6931f6b9-c9fc-4743-8398-f754a0401815"
                    :graph-id "http-request"
                    :position {:y 280, :x 100}
-                   :props    {:url "${root}/planets/5"}}
+                   :props    {:url "${root}/planets/5" :http-method "GET"}}
                   {:name     "Assert Body"
                    :type     "assert-body"
                    :id       "9ae8f969-7b77-4941-ab66-c107600ce3dd"
@@ -101,11 +101,15 @@
   "Stores the whole application's state"
   (atom
     {:graphs                            []
+     ; The ID of the current selected graph
      :selected-graph-id                 nil
+     ; The IDs of the current selected nodes in the selected graph.
+     :selected-node-ids                 #{}
      :executions                        {}
      :execution-history                 []
      :projects                          {"default" {:id "default" :name "Apibot"}}
      :selected-project-id               "default"
+     ; A graph ID to filter execution results in the execution history view.
      :execution-history>filter-graph-id nil
      :ui                                {:tasks-dialog-expanded true
                                          :bootstrapped          false}}))
@@ -143,6 +147,16 @@
                                          :selected-graph-id (:id new-selected-graph))))
                     new-graph)))
           [:selected-graph]))
+
+(def *selected-node-ids
+  "A set with the ID of all selected nodes."
+  (cursor *app-state [:selected-node-ids]))
+
+(defn selected-nodes-cursors []
+  (commons/find-as-cursors
+    *selected-graph [:nodes]
+    (fn [node]
+      (contains? @*selected-node-ids (:id node)))))
 
 (def *projects
   "A cursor to a map of project ID => project. For a list of projects see *project-list below."
@@ -187,11 +201,7 @@
 
 
 (defn reset-selected-graph-by-id! [graph-id]
-  ;; TODO this should be made atomic. If/when it is made atomic make sure to maintain
-  ;; consistency between the selected graph and the *graphs the same that that *selected-graph
-  ;; is maintaining it now i.e. by "re-saving" the *selected-graph into the *graphs.
-  (let [graph (graphs/find-graph-by-id graph-id @*graphs)]
-    (reset! *selected-graph graph)))
+  (coll/reset-in! *app-state [:selected-graph-id] graph-id))
 
 (def *executions
   "A cursor to the executions which are modelled as a map from graph-id => promise(execution result)."
