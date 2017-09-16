@@ -22,7 +22,7 @@
     [apibot.coll :as coll]
     [apibot.mixpanel :as mixpanel]
     [apibot.raven :as raven]
-    [apibot.state :as state :refer [*app-state *execution-history>filter-graph-id]]
+    [apibot.state :as state :refer [*app-state *execution-history>filter-graph-id *selected-node-ids]]
     [apibot.util :as util]
     [apibot.views.dialogs :as dialogs]
     [clojure.string :refer [starts-with?]]
@@ -94,11 +94,13 @@
   "/editor" []
   (mixpanel/track :ev-page-editor)
   (state/reset-selected-graph-by-id! nil)
+  (reset! *selected-node-ids #{})
   (handle-request :editor))
 
 (secretary/defroute
   "/editor/:graph-id" [graph-id]
   (mixpanel/track :ev-page-editor)
+  (reset! *selected-node-ids #{})
   (handle-request :editor)
   (state/reset-selected-graph-by-id! graph-id))
 
