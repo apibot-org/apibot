@@ -13,7 +13,7 @@
 (defn graph-comparator
   [graph]
   [(graphs/editable? graph)
-   (graphs/executable? graph)
+   (:executable graph)
    (graphs/label graph)])
 
 (defn duplicate-graph

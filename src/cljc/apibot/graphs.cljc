@@ -224,12 +224,16 @@
 (defn with-nodes [nodes graph]
   (assoc graph :nodes (vec nodes)))
 
+(defn find-start-nodes
+  "Finds all starting nodes in the graph"
+  [graph]
+  (->> (:nodes graph)
+       (filter (fn [node] (empty? (predecessors node graph))))))
+
 (defn find-start-node
   "Finds the starting node (or nil if not found)"
   [graph]
-  (->> (:nodes graph)
-       (filter (fn [node] (empty? (predecessors node graph))))
-       (first)))
+  (first (find-start-nodes graph)))
 
 (defn traverse
   [starting-node successors-fn graph]
@@ -313,12 +317,20 @@
   (graph->node skippable-graph))
 
 
-
 (defn dag? [graph]
-  ; The graph must have only one connected component.
-  (= 1 (count (connected-components graph)))
-  ; The graph cannot have loops.
-  (loopless? graph))
+  (let [start-nodes (find-start-nodes graph)
+        start-node (first start-nodes)]
+    (if (not= (count start-nodes) 1)
+      false
+      (loop [remaining-nodes [start-node]
+             visited-node-ids #{}]
+        (if (empty? remaining-nodes)
+          (= (count visited-node-ids) (count (:nodes graph)))
+          (let [head (first remaining-nodes)]
+            (if (contains? visited-node-ids (:id head))
+              false
+              (recur (concat (rest remaining-nodes) (successors head graph))
+                     (conj visited-node-ids (:id head))))))))))
 
 
 (defn executable?

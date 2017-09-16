@@ -6,7 +6,7 @@
     [apibot.mixpanel :refer [track]]
     [apibot.coll :refer [swapr!]]
     [apibot.views.commons :refer [subscribe unsubscribe]]
-    [reagent.core :as reagent :refer [atom create-class props]]
+    [reagent.core :as reagent]
     [apibot.views.dialogs :as dialogs]
     [apibot.state :refer [*selected-node-ids]]
     [apibot.coll :as coll]))
@@ -14,7 +14,7 @@
 ;; ---- Model ----
 
 (defn event->id [e]
-  (-> e .-cyTarget .id))
+  (-> e .-target .id))
 
 (defn send-graph-updates [cy **selected-graph]
   (let [elements (-> (.json @cy)
@@ -290,13 +290,13 @@
   (let [;; ---- State ----
         ;; Hold the cytoscape atom here, This will only be available after the
         ;; component has been mounted.
-        cy (reagent/atom nil)
+        cy (atom nil)
         ;; A reference to the ID of the current selected graph, this is mostly meant as a means
         ;; for determining when the graph being displayed changed.
         *selected-graph-id (atom nil)
         ;; Hold an an atom of the selected graph's atom.
         ;; Yes, you read correctly, this is an (atom (atom graph))
-        **selected-graph (reagent/atom nil)]
+        **selected-graph (atom nil)]
 
     (reagent/create-class
       {:should-component-update

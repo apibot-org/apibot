@@ -32,21 +32,22 @@ SOFTWARE.
         content: 'a command name' // html/text content to be displayed in the menu
         select: function(ele){ // a function to execute when the command is selected
           console.log( ele.id() ) // `ele` holds the reference to the active element
-        }
+        },
+        enabled: true // whether the command is selectable
       }
       */
     ], // function( ele ){ return [ /*...*/ ] }, // example function for commands
     fillColor: 'rgba(0, 0, 0, 0.75)', // the background colour of the menu
-    activeFillColor: 'rgba(92, 194, 237, 0.75)', // the colour used to indicate the selected command
+    activeFillColor: 'rgba(1, 105, 217, 0.75)', // the colour used to indicate the selected command
     activePadding: 20, // additional size in pixels for the active command
     indicatorSize: 24, // the size in pixels of the pointer to the active command
     separatorWidth: 3, // the empty spacing in pixels between successive commands
     spotlightPadding: 4, // extra spacing in pixels between the element and the spotlight
     minSpotlightRadius: 24, // the minimum radius in pixels of the spotlight
     maxSpotlightRadius: 38, // the maximum radius in pixels of the spotlight
-    openMenuEvents: 'cxttapstart taphold', // cytoscape events that will open the menu (space separated)
+    openMenuEvents: 'cxttapstart taphold', // space-separated cytoscape events that will open the menu; only `cxttapstart` and/or `taphold` work here
     itemColor: 'white', // the colour of text in the command's content
-    itemTextShadowColor: 'black', // the text shadow colour of the command's content
+    itemTextShadowColor: 'transparent', // the text shadow colour of the command's content
     zIndex: 9999, // the z-index of the ui div
     atMouse: false // draw menu at mouse position
   };
@@ -106,6 +107,10 @@ SOFTWARE.
     }
 
     return el;
+  };
+
+  var getPixelRatio = function(){
+    return window.devicePixelRatio || 1;
   };
 
   // registers the extension on a cytoscape lib ref
@@ -168,57 +173,57 @@ SOFTWARE.
       canvas.width = containerSize;
       canvas.height = containerSize;
 
-    function createMenuItems() {
-      removeEles('.cxtmenu-item', parent);
-      var dtheta = 2 * Math.PI / (commands.length);
-      var theta1 = Math.PI / 2;
-      var theta2 = theta1 + dtheta;
+      function createMenuItems() {
+        removeEles('.cxtmenu-item', parent);
+        var dtheta = 2 * Math.PI / (commands.length);
+        var theta1 = Math.PI / 2;
+        var theta2 = theta1 + dtheta;
 
-      for (var i = 0; i < commands.length; i++) {
-        var command = commands[i];
+        for (var i = 0; i < commands.length; i++) {
+          var command = commands[i];
 
-        var midtheta = (theta1 + theta2) / 2;
-        var rx1 = 0.66 * r * Math.cos(midtheta);
-        var ry1 = 0.66 * r * Math.sin(midtheta);
+          var midtheta = (theta1 + theta2) / 2;
+          var rx1 = 0.66 * r * Math.cos(midtheta);
+          var ry1 = 0.66 * r * Math.sin(midtheta);
 
-        var item = createElement({class: 'cxtmenu-item'});
-        setStyles(item, {
-          color: options.itemColor,
-          cursor: 'default',
-          display: 'table',
-          'text-align': 'center',
-          //background: 'red',
-          position: 'absolute',
-          'text-shadow': '-1px -1px ' + options.itemTextShadowColor + ', 1px -1px ' + options.itemTextShadowColor + ', -1px 1px ' + options.itemTextShadowColor + ', 1px 1px ' + options.itemTextShadowColor,
-          left: '50%',
-          top: '50%',
-          'min-height': (r * 0.66) + 'px',
-          width: (r * 0.66) + 'px',
-          height: (r * 0.66) + 'px',
-          marginLeft: (rx1 - r * 0.33) + 'px',
-          marginTop: (-ry1 - r * 0.33) + 'px'
-        });
+          var item = createElement({class: 'cxtmenu-item'});
+          setStyles(item, {
+            color: options.itemColor,
+            cursor: 'default',
+            display: 'table',
+            'text-align': 'center',
+            //background: 'red',
+            position: 'absolute',
+            'text-shadow': '-1px -1px 2px ' + options.itemTextShadowColor + ', 1px -1px 2px ' + options.itemTextShadowColor + ', -1px 1px 2px ' + options.itemTextShadowColor + ', 1px 1px 1px ' + options.itemTextShadowColor,
+            left: '50%',
+            top: '50%',
+            'min-height': (r * 0.66) + 'px',
+            width: (r * 0.66) + 'px',
+            height: (r * 0.66) + 'px',
+            marginLeft: (rx1 - r * 0.33) + 'px',
+            marginTop: (-ry1 - r * 0.33) + 'px'
+          });
 
-        var content = createElement({class: 'cxtmenu-content'});
-        content.innerHTML = command.content;
-        setStyles(content, {
-          'width': (r * 0.66) + 'px',
-          'height': (r * 0.66) + 'px',
-          'vertical-align': 'middle',
-          'display': 'table-cell'
-        });
+          var content = createElement({class: 'cxtmenu-content'});
+          content.innerHTML = command.content;
+          setStyles(content, {
+            'width': (r * 0.66) + 'px',
+            'height': (r * 0.66) + 'px',
+            'vertical-align': 'middle',
+            'display': 'table-cell'
+          });
 
-        if (command.disabled) {
-          content.classList.add('cxtmenu-disabled');
+          if (command.disabled === true || command.enabled === false) {
+            content.classList.add('cxtmenu-disabled');
+          }
+
+          parent.appendChild(item);
+          item.appendChild(content);
+
+          theta1 += dtheta;
+          theta2 += dtheta;
         }
-
-        parent.appendChild(item);
-        item.appendChild(content);
-
-        theta1 += dtheta;
-        theta2 += dtheta;
       }
-    }
 
       function queueDrawBg( rspotlight ){
         redrawQueue.drawBg = [ rspotlight ];
@@ -310,15 +315,23 @@ SOFTWARE.
         c2d.fillStyle = 'white';
         c2d.globalCompositeOperation = 'destination-out';
 
+        var tx = r + options.activePadding + rx/r*(rs + options.spotlightPadding - options.indicatorSize/4);
+        var ty = r + options.activePadding + ry/r*(rs + options.spotlightPadding - options.indicatorSize/4);
+        var rot = Math.PI/4 - theta;
+
+        c2d.translate( tx, ty );
+        c2d.rotate( rot );
+
         // clear the indicator
         c2d.beginPath();
-        c2d.translate( r + options.activePadding + rx/r*(rs + options.spotlightPadding - options.indicatorSize/4), r + options.activePadding + ry/r*(rs + options.spotlightPadding - options.indicatorSize/4) );
-        c2d.rotate( Math.PI/4 - theta );
         c2d.fillRect(-options.indicatorSize/2, -options.indicatorSize/2, options.indicatorSize, options.indicatorSize);
         c2d.closePath();
         c2d.fill();
 
-        c2d.setTransform(1, 0, 0, 1, 0, 0);
+        c2d.rotate( -rot );
+        c2d.translate( -tx, -ty );
+
+        // c2d.setTransform( 1, 0, 0, 1, 0, 0 );
 
         // clear the spotlight
         c2d.beginPath();
@@ -327,6 +340,21 @@ SOFTWARE.
         c2d.fill();
 
         c2d.globalCompositeOperation = 'source-over';
+      }
+
+      function updatePixelRatio(){
+        var pxr = getPixelRatio();
+        var w = container.clientWidth;
+        var h = container.clientHeight;
+
+        canvas.width = w * pxr;
+        canvas.height = h * pxr;
+
+        canvas.style.width = w + 'px';
+        canvas.style.height = h + 'px';
+
+        c2d.setTransform( 1, 0, 0, 1, 0, 0 );
+        c2d.scale( pxr, pxr );
       }
 
       var redrawing = true;
@@ -348,7 +376,9 @@ SOFTWARE.
         }
       };
 
-      redraw(); // kick off
+      // kick off
+      updatePixelRatio();
+      redraw();
 
       var ctrx, ctry, rs;
 
@@ -358,7 +388,7 @@ SOFTWARE.
           var _fn = fn;
           if( selector === 'core'){
             _fn = function( e ){
-              if( e.cyTarget === cy ){ // only if event target is directly core
+              if( e.cyTarget === cy || e.target === cy ){ // only if event target is directly core
                 return fn.apply( this, [ e ] );
               }
             };
@@ -386,8 +416,8 @@ SOFTWARE.
         var dragHandler;
         var zoomEnabled;
         var panEnabled;
+        var boxEnabled;
         var gestureStartEvent;
-        var boxSelectionEnabled;
 
         var restoreZoom = function(){
           if( zoomEnabled ){
@@ -408,7 +438,7 @@ SOFTWARE.
         };
 
         var restoreBoxSeln = function(){
-          if( boxSelectionEnabled ){
+          if( boxEnabled ){
             cy.boxSelectionEnabled( true );
           }
         };
@@ -420,7 +450,13 @@ SOFTWARE.
           restoreBoxSeln();
         };
 
+        window.addEventListener('resize', updatePixelRatio);
+
         bindings
+          .on('resize', function(e){
+            updatePixelRatio();
+          })
+
           .on(options.openMenuEvents, options.selector, function(e){
             target = this; // Remember which node the context menu is for
             var ele = this;
@@ -448,7 +484,7 @@ SOFTWARE.
             panEnabled = cy.userPanningEnabled();
             cy.userPanningEnabled( false );
 
-            boxSelectionEnabled = cy.boxSelectionEnabled();
+            boxEnabled = cy.boxSelectionEnabled();
             cy.boxSelectionEnabled( false );
 
             grabbable = target.grabbable &&  target.grabbable();
@@ -462,7 +498,7 @@ SOFTWARE.
               rw = ele.renderedWidth();
               rh = ele.renderedHeight();
             } else {
-              rp = e.cyRenderedPosition;
+              rp = e.renderedPosition || e.cyRenderedPosition;
               rw = 1;
               rh = 1;
             }
@@ -555,30 +591,20 @@ SOFTWARE.
 
           .on('tapdrag', dragHandler)
 
-          .on('cxttap tap', options.selector, function(e){
-            var ele = this;
+          .on('cxttapend tapend', function(e){
+            parent.style.display = 'none';
+
             if( activeCommandI !== undefined ){
               var select = commands[ activeCommandI ].select;
+
               if( select ){
-                select.apply( ele, [ele, gestureStartEvent] );
+                select.apply( target, [target, gestureStartEvent] );
                 activeCommandI = undefined;
               }
             }
-          })
 
-          .on('cxttapend tapend', function(e){
-            if (options.openMenuEvents === 'tap') {
-              var ele = this;
-              if (activeCommandI !== undefined) {
-                var select = commands[ activeCommandI ].select;
-                if (select) {
-                  select.apply(ele, [ele, gestureStartEvent]);
-                  activeCommandI = undefined;
-                }
-              }
-            }
-            parent.style.display = 'none';
             inGesture = false;
+
             restoreGestures();
           })
         ;
@@ -596,6 +622,8 @@ SOFTWARE.
             cy.off(h.events, h.selector, h.fn);
           }
         }
+
+        window.removeEventListener('resize', updatePixelRatio);
       }
 
       function destroyInstance(){
@@ -620,9 +648,7 @@ SOFTWARE.
 
   if( typeof module !== 'undefined' && module.exports ){ // expose as a commonjs module
     module.exports = register;
-  }
-
-  if( typeof define !== 'undefined' && define.amd ){ // expose as an amd/requirejs module
+  } else if( typeof define !== 'undefined' && define.amd ){ // expose as an amd/requirejs module
     define('cytoscape-cxtmenu', function(){
       return register;
     });

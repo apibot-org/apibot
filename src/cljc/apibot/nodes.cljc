@@ -85,6 +85,9 @@
   top left corner."
   (let [position (:position node)
         cyto-node {:group "nodes"
+                   :locked false
+                   :grabbable true
+                   :selectable true
                    :data  {:id   (:id node)
                            :text (label node)
                            :type (:type node)

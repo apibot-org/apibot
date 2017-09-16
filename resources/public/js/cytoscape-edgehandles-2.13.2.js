@@ -19,8 +19,17 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
+/**
+ * @license
+ * Lodash (Custom Build) lodash.com/license | Underscore.js 1.8.3 underscorejs.org/LICENSE
+ * Build: `lodash include="debounce,throttle" -c`
+ */
+;(function(){function t(){}function e(t,e,o){function r(e){var n=p,o=s;return p=s=u,g=e,y=t.apply(o,n)}function f(t){var n=t-m;return t-=g,m===u||n>=e||0>n||v&&t>=b}function a(){var t=h();if(f(t))return c(t);var n,o=setTimeout;n=t-g,t=e-(t-m),n=v?O(t,b-n):t,d=o(a,n)}function c(t){return d=u,T&&p?r(t):(p=s=u,y)}function l(){var t=h(),n=f(t);if(p=arguments,s=this,m=t,n){if(d===u)return g=t=m,d=setTimeout(a,e),j?r(t):y;if(v)return d=setTimeout(a,e),r(m)}return d===u&&(d=setTimeout(a,e)),y}var p,s,b,y,d,m,g=0,j=false,v=false,T=true;
+if(typeof t!="function")throw new TypeError("Expected a function");return e=i(e)||0,n(o)&&(j=!!o.leading,b=(v="maxWait"in o)?x(i(o.maxWait)||0,e):b,T="trailing"in o?!!o.trailing:T),l.cancel=function(){d!==u&&clearTimeout(d),g=0,p=m=s=d=u},l.flush=function(){return d===u?y:c(h())},l}function n(t){var e=typeof t;return null!=t&&("object"==e||"function"==e)}function o(t){return null!=t&&typeof t=="object"}function r(t){var e;if(!(e=typeof t=="symbol")&&(e=o(t))){if(null==t)t=t===u?"[object Undefined]":"[object Null]";else if(v&&v in Object(t)){
+e=g.call(t,v);var n=t[v];try{t[v]=u;var r=true}catch(t){}var i=j.call(t);r&&(e?t[v]=n:delete t[v]),t=i}else t=j.call(t);e="[object Symbol]"==t}return e}function i(t){if(typeof t=="number")return t;if(r(t))return f;if(n(t)&&(t=typeof t.valueOf=="function"?t.valueOf():t,t=n(t)?t+"":t),typeof t!="string")return 0===t?t:+t;t=t.replace(a,"");var e=l.test(t);return e||p.test(t)?s(t.slice(2),e?2:8):c.test(t)?f:+t}var u,f=NaN,a=/^\s+|\s+$/g,c=/^[-+]0x[0-9a-f]+$/i,l=/^0b[01]+$/i,p=/^0o[0-7]+$/i,s=parseInt,b=typeof self=="object"&&self&&self.Object===Object&&self,y=typeof global=="object"&&global&&global.Object===Object&&global||b||Function("return this")(),d=(b=typeof exports=="object"&&exports&&!exports.nodeType&&exports)&&typeof module=="object"&&module&&!module.nodeType&&module,m=Object.prototype,g=m.hasOwnProperty,j=m.toString,v=(m=y.Symbol)?m.toStringTag:u,x=Math.max,O=Math.min,h=function(){
+return y.Date.now()};t.debounce=e,t.throttle=function(t,o,r){var i=true,u=true;if(typeof t!="function")throw new TypeError("Expected a function");return n(r)&&(i="leading"in r?!!r.leading:i,u="trailing"in r?!!r.trailing:u),e(t,o,{leading:i,maxWait:o,trailing:u})},t.isObject=n,t.isObjectLike=o,t.isSymbol=r,t.now=h,t.toNumber=i,t.VERSION="4.17.4",typeof define=="function"&&typeof define.amd=="object"&&define.amd?(y._=t, define(function(){return t})):d?((d.exports=t)._=t,b._=t):y._=t}).call(this);
 
-;( function($$) {
+( function($$) {
   'use strict';
 
   var whitespace = /\s+/;
@@ -143,272 +152,34 @@ SOFTWARE.
     };
   };
 
-  var debounce = (function(){
-    /**
-     * lodash 3.1.1 (Custom Build) <https://lodash.com/>
-     * Build: `lodash modern modularize exports="npm" -o ./`
-     * Copyright 2012-2015 The Dojo Foundation <http://dojofoundation.org/>
-     * Based on Underscore.js 1.8.3 <http://underscorejs.org/LICENSE>
-     * Copyright 2009-2015 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
-     * Available under MIT license <https://lodash.com/license>
-     */
-    /** Used as the `TypeError` message for "Functions" methods. */
-    var FUNC_ERROR_TEXT = 'Expected a function';
+  var assign = function( tgt ){
+    for( var i = 1; i < arguments.length; i++ ){
+      var obj = arguments[i];
+      var keys = Object.keys( obj );
 
-    /* Native method references for those with the same name as other `lodash` methods. */
-    var nativeMax = Math.max,
-        nativeNow = Date.now;
+      for( var j = 0; j < keys.length; j++ ){
+        var key = keys[j];
 
-    /**
-     * Gets the number of milliseconds that have elapsed since the Unix epoch
-     * (1 January 1970 00:00:00 UTC).
-     *
-     * @static
-     * @memberOf _
-     * @category Date
-     * @example
-     *
-     * _.defer(function(stamp) {
-     *   console.log(_.now() - stamp);
-     * }, _.now());
-     * // => logs the number of milliseconds it took for the deferred function to be invoked
-     */
-    var now = nativeNow || function() {
-      return new Date().getTime();
-    };
-
-    /**
-     * Creates a debounced function that delays invoking `func` until after `wait`
-     * milliseconds have elapsed since the last time the debounced function was
-     * invoked. The debounced function comes with a `cancel` method to cancel
-     * delayed invocations. Provide an options object to indicate that `func`
-     * should be invoked on the leading and/or trailing edge of the `wait` timeout.
-     * Subsequent calls to the debounced function return the result of the last
-     * `func` invocation.
-     *
-     * **Note:** If `leading` and `trailing` options are `true`, `func` is invoked
-     * on the trailing edge of the timeout only if the the debounced function is
-     * invoked more than once during the `wait` timeout.
-     *
-     * See [David Corbacho's article](http://drupalmotion.com/article/debounce-and-throttle-visual-explanation)
-     * for details over the differences between `_.debounce` and `_.throttle`.
-     *
-     * @static
-     * @memberOf _
-     * @category Function
-     * @param {Function} func The function to debounce.
-     * @param {number} [wait=0] The number of milliseconds to delay.
-     * @param {Object} [options] The options object.
-     * @param {boolean} [options.leading=false] Specify invoking on the leading
-     *  edge of the timeout.
-     * @param {number} [options.maxWait] The maximum time `func` is allowed to be
-     *  delayed before it's invoked.
-     * @param {boolean} [options.trailing=true] Specify invoking on the trailing
-     *  edge of the timeout.
-     * @returns {Function} Returns the new debounced function.
-     * @example
-     *
-     * // avoid costly calculations while the window size is in flux
-     * jQuery(window).on('resize', _.debounce(calculateLayout, 150));
-     *
-     * // invoke `sendMail` when the click event is fired, debouncing subsequent calls
-     * jQuery('#postbox').on('click', _.debounce(sendMail, 300, {
-     *   'leading': true,
-     *   'trailing': false
-     * }));
-     *
-     * // ensure `batchLog` is invoked once after 1 second of debounced calls
-     * var source = new EventSource('/stream');
-     * jQuery(source).on('message', _.debounce(batchLog, 250, {
-     *   'maxWait': 1000
-     * }));
-     *
-     * // cancel a debounced call
-     * var todoChanges = _.debounce(batchLog, 1000);
-     * Object.observe(models.todo, todoChanges);
-     *
-     * Object.observe(models, function(changes) {
-     *   if (_.find(changes, { 'user': 'todo', 'type': 'delete'})) {
-     *     todoChanges.cancel();
-     *   }
-     * }, ['delete']);
-     *
-     * // ...at some point `models.todo` is changed
-     * models.todo.completed = true;
-     *
-     * // ...before 1 second has passed `models.todo` is deleted
-     * // which cancels the debounced `todoChanges` call
-     * delete models.todo;
-     */
-    function debounce(func, wait, options) {
-      var args,
-          maxTimeoutId,
-          result,
-          stamp,
-          thisArg,
-          timeoutId,
-          trailingCall,
-          lastCalled = 0,
-          maxWait = false,
-          trailing = true;
-
-      if (typeof func != 'function') {
-        throw new TypeError(FUNC_ERROR_TEXT);
+        tgt[key] = obj[key];
       }
-      wait = wait < 0 ? 0 : (+wait || 0);
-      if (options === true) {
-        var leading = true;
-        trailing = false;
-      } else if (isObject(options)) {
-        leading = !!options.leading;
-        maxWait = 'maxWait' in options && nativeMax(+options.maxWait || 0, wait);
-        trailing = 'trailing' in options ? !!options.trailing : trailing;
-      }
-
-      function cancel() {
-        if (timeoutId) {
-          clearTimeout(timeoutId);
-        }
-        if (maxTimeoutId) {
-          clearTimeout(maxTimeoutId);
-        }
-        lastCalled = 0;
-        maxTimeoutId = timeoutId = trailingCall = undefined;
-      }
-
-      function complete(isCalled, id) {
-        if (id) {
-          clearTimeout(id);
-        }
-        maxTimeoutId = timeoutId = trailingCall = undefined;
-        if (isCalled) {
-          lastCalled = now();
-          result = func.apply(thisArg, args);
-          if (!timeoutId && !maxTimeoutId) {
-            args = thisArg = undefined;
-          }
-        }
-      }
-
-      function delayed() {
-        var remaining = wait - (now() - stamp);
-        if (remaining <= 0 || remaining > wait) {
-          complete(trailingCall, maxTimeoutId);
-        } else {
-          timeoutId = setTimeout(delayed, remaining);
-        }
-      }
-
-      function maxDelayed() {
-        complete(trailing, timeoutId);
-      }
-
-      function debounced() {
-        args = arguments;
-        stamp = now();
-        thisArg = this;
-        trailingCall = trailing && (timeoutId || !leading);
-
-        if (maxWait === false) {
-          var leadingCall = leading && !timeoutId;
-        } else {
-          if (!maxTimeoutId && !leading) {
-            lastCalled = stamp;
-          }
-          var remaining = maxWait - (stamp - lastCalled),
-              isCalled = remaining <= 0 || remaining > maxWait;
-
-          if (isCalled) {
-            if (maxTimeoutId) {
-              maxTimeoutId = clearTimeout(maxTimeoutId);
-            }
-            lastCalled = stamp;
-            result = func.apply(thisArg, args);
-          }
-          else if (!maxTimeoutId) {
-            maxTimeoutId = setTimeout(maxDelayed, remaining);
-          }
-        }
-        if (isCalled && timeoutId) {
-          timeoutId = clearTimeout(timeoutId);
-        }
-        else if (!timeoutId && wait !== maxWait) {
-          timeoutId = setTimeout(delayed, wait);
-        }
-        if (leadingCall) {
-          isCalled = true;
-          result = func.apply(thisArg, args);
-        }
-        if (isCalled && !timeoutId && !maxTimeoutId) {
-          args = thisArg = undefined;
-        }
-        return result;
-      }
-      debounced.cancel = cancel;
-      return debounced;
     }
 
-    /**
-     * Checks if `value` is the [language type](https://es5.github.io/#x8) of `Object`.
-     * (e.g. arrays, functions, objects, regexes, `new Number(0)`, and `new String('')`)
-     *
-     * @static
-     * @memberOf _
-     * @category Lang
-     * @param {*} value The value to check.
-     * @returns {boolean} Returns `true` if `value` is an object, else `false`.
-     * @example
-     *
-     * _.isObject({});
-     * // => true
-     *
-     * _.isObject([1, 2, 3]);
-     * // => true
-     *
-     * _.isObject(1);
-     * // => false
-     */
-    function isObject(value) {
-      // Avoid a V8 JIT bug in Chrome 19-20.
-      // See https://code.google.com/p/v8/issues/detail?id=2291 for more details.
-      var type = typeof value;
-      return !!value && (type == 'object' || type == 'function');
-    }
-
-    return debounce;
-
-  })();
-
-  // ported lodash throttle function
-  var throttle = function( func, wait, options ){
-    var leading = true,
-        trailing = true;
-
-    if( options === false ){
-      leading = false;
-    } else if( typeof options === typeof {} ){
-      leading = 'leading' in options ? options.leading : leading;
-      trailing = 'trailing' in options ? options.trailing : trailing;
-    }
-    options = options || {};
-    options.leading = leading;
-    options.maxWait = wait;
-    options.trailing = trailing;
-
-    return debounce( func, wait, options );
+    return tgt;
   };
 
   // registers the extension on a cytoscape lib ref
-  var register = function( $$ ) {
-    if( !$$ ) {
+  var register = function( $$, debounce, throttle ) {
+    if( !$$ || !debounce || !throttle ) {
       return;
-    } // can't register if cytoscape unspecified
+    } // can't register if cytoscape or dependencies unspecified
 
+    /* eslint-disable no-unused-vars */
     var defaults = {
       preview: true, // whether to show added edges preview before releasing selection
       stackOrder: 4, // Controls stack order of edgehandles canvas element by setting it's z-index
       handleSize: 10, // the size of the edge handle put on nodes
-      handleIcon: false,
+      handleHitThreshold: 6, // a threshold for hit detection that makes it easier to grab the handle
+      handleIcon: false, // an image to put on the handle
       handleColor: '#ff0000', // the colour of the handle and the line drawn from it
       handleLineType: 'ghost', // can be 'ghost' for real edge, 'straight' for a straight line, or 'draw' for a draw-as-you-go line
       handleLineWidth: 1, // width of handle line in pixels
@@ -449,11 +220,13 @@ SOFTWARE.
       },
       stop: function( sourceNode ) {
         // fired when edgehandles interaction is stopped (either complete with added edges or incomplete)
-      }, 
-      cancel: function( sourceNode, renderedPosition ) {
-        // fired when edgehandles are cancelled ( incomplete - nothing has been added ) - renderedPosition is where the edgehandle was released
+      },
+      cancel: function( sourceNode, renderedPosition, invalidTarget ) {
+        // fired when edgehandles are cancelled ( incomplete - nothing has been added ) - renderedPosition is where the edgehandle was released, invalidTarget is
+        // a collection on which the handle was released, but which for other reasons (loopAllowed | edgeType) is an invalid target
       }
     };
+    /* eslint-enable */
 
     var edgehandles = function( params ) {
       var cy = this;
@@ -488,7 +261,7 @@ SOFTWARE.
           if( value === undefined ) {
             if( typeof name == typeof {} ) {
               var newOpts = name;
-              options =Object.assign( {}, defaults, newOpts );
+              options = assign( {}, defaults, newOpts );
               data.options = options;
             } else {
               return options[ name ];
@@ -525,13 +298,11 @@ SOFTWARE.
         },
 
         init: function() {
-          var self = this;
-          var opts = Object.assign({}, defaults, params );
+          var opts = assign({}, defaults, params );
           var $container = $( this );
           var canvas = document.createElement('canvas');
           var $canvas = $(canvas);
-          var handle;
-          var line, linePoints;
+          var linePoints;
           var mdownOnHandle = false;
           var grabbingNode = false;
           var inForceStart = false;
@@ -540,9 +311,14 @@ SOFTWARE.
           var hoverTimeout;
           var drawsClear = true;
           var ghostNode;
-          var ghostEdge;
           var sourceNode;
           var drawMode = false;
+          var pxRatio;
+
+          function getDevicePixelRatio(){
+            return window.devicePixelRatio || 1;
+          }
+
           cy.on( 'resize', function() {
             $container.trigger( 'cyedgehandles.resize' );
           });
@@ -550,21 +326,26 @@ SOFTWARE.
           $container.append( $canvas );
 
           var _sizeCanvas = debounce( function(){
+            pxRatio = getDevicePixelRatio();
+
+            var width = $container.width();
+            var height = $container.height();
+
+            var attrWidth = width * pxRatio;
+            var attrHeight = height * pxRatio;
+
             $canvas
-              .attr( 'height', $container.height() )
-              .attr( 'width', $container.width() );
-            canvas.setAttribute('style', 'position:absolute;top:0;left:0;z-index:'+opts.stackOrder);
+              .attr( 'width', attrWidth )
+              .attr( 'height', attrHeight )
+            ;
 
-            setTimeout(function(){
-              var canvasBb = $canvas.offset();
-              var containerBb = $container.offset();
+            canvas.setAttribute('style', 'position:absolute; top:0; left:0; z-index:'+options().stackOrder+'; width:'+width+'px; height:'+height+'px;');
 
-              canvas
-                .setAttribute('style', 'position:absolute;top:'+
-                  (-( canvasBb.top - containerBb.top ))+
-                  'px;left:'+(-( canvasBb.left - containerBb.left ))+
-                  'px;z-index:'+opts.stackOrder);
-            }, 0);
+            var c2d = canvas.getContext('2d');
+
+            c2d.setTransform( 1, 0, 0, 1, 0, 0 );
+
+            c2d.scale( pxRatio, pxRatio );
           }, 250 );
 
           var sizeCanvas = function(){
@@ -624,6 +405,16 @@ SOFTWARE.
             return !enabled();
           }
 
+          function addClassesToEleJson( json, classes ){
+            if( json.classes ){
+              json.classes += classes;
+            } else {
+              json.classes = classes;
+            }
+
+            return json;
+          }
+
           function clearDraws() {
 
             if( drawsClear ) {
@@ -665,9 +456,10 @@ SOFTWARE.
             cy.nodes()
               .removeClass( 'edgehandles-hover' )
               .removeClass( 'edgehandles-source' )
+              .removeClass( 'edgehandles-presumptive-target')
               .removeClass( 'edgehandles-target' );
 
-            cy.$( '.edgehandles-ghost' ).remove();
+            cy.$( '.edgehandles-ghost, .edgehandles-preview' ).remove();
             //}, 1);
 
 
@@ -696,7 +488,7 @@ SOFTWARE.
 
           }
 
-          function drawHandle( hx, hy, hr ) {
+          function drawHandle() {
             ctx.fillStyle = options().handleColor;
             ctx.strokeStyle = options().handleOutlineColor;
 
@@ -706,7 +498,7 @@ SOFTWARE.
             ctx.fill();
 
             if(options().handleOutlineWidth) {
-              ctx.lineWidth = options().handleLineWidth;
+              ctx.lineWidth = options().handleLineWidth * cy.zoom();
               ctx.stroke();
             }
 
@@ -721,7 +513,7 @@ SOFTWARE.
 
           var lineDrawRate = 1000 / 60;
 
-          var drawLine = throttle( function( hx, hy, x, y ) {
+          var drawLine = throttle( function( x, y ) {
 
             // can't draw a line without having the starting node
             if( !sourceNode ){ return; }
@@ -756,7 +548,7 @@ SOFTWARE.
                     }
                   } );
 
-                  ghostEdge = cy.add( {
+                  cy.add( {
                     group: 'edges',
                     classes: 'edgehandles-ghost edgehandles-ghost-edge',
                     data: {
@@ -829,8 +621,9 @@ SOFTWARE.
             }
 
             if( source.size() === 0 || targets.size() === 0 ) {
-              options().cancel(source, {x: mx, y: my});
-              source.trigger( 'cyedgehandles.cancel', {x: mx, y: my});
+              var presumptiveTarget = cy.nodes( '.edgehandles-presumptive-target' );
+              options().cancel(source, {x: mx, y: my}, presumptiveTarget);
+              source.trigger( 'cyedgehandles.cancel', [{x: mx, y: my}, presumptiveTarget]);
               return; // nothing to do :(
             }
 
@@ -838,7 +631,6 @@ SOFTWARE.
             if( !src && !tgt ) {
               if( !preview && options().preview ) {
                 added = cy.elements( '.edgehandles-preview' ).removeClass( 'edgehandles-preview' );
-
                 options().complete( source, targets, added );
                 source.trigger( 'cyedgehandles.complete' );
                 return;
@@ -870,39 +662,59 @@ SOFTWARE.
                     };
                   }
 
-                  var interNode = cy.add( Object.assign( {
-                    group: 'nodes',
-                    position: p
-                  }, options().nodeParams( source, target ) ) ).addClass( classes );
+                  var interNode = cy.add(
+                    addClassesToEleJson( assign(
+                      {
+                        group: 'nodes',
+                        position: p
+                      },
+                      options().nodeParams( source, target )
+                    ), classes )
+                  );
 
-                  var source2inter = cy.add( Object.assign( {
-                    group: 'edges',
-                    data: {
-                      source: source.id(),
-                      target: interNode.id()
-                    }
-                  }, options().edgeParams( source, target, 0 ) ) ).addClass( classes );
+                  var source2inter = cy.add(
+                    addClassesToEleJson( assign(
+                      {
+                        group: 'edges',
+                        data: {
+                          source: source.id(),
+                          target: interNode.id()
+                        }
+                      },
+                      options().edgeParams( source, target, 0 )
+                    ), classes )
+                  );
 
-                  var inter2target = cy.add( Object.assign( {
-                    group: 'edges',
-                    data: {
-                      source: interNode.id(),
-                      target: target.id()
-                    }
-                  }, options().edgeParams( source, target, 1 ) ) ).addClass( classes );
+                  var inter2target = cy.add(
+                    addClassesToEleJson( assign(
+                      {
+                        group: 'edges',
+                        data: {
+                          source: interNode.id(),
+                          target: target.id()
+                        }
+                      },
+                      options().edgeParams( source, target, 1 )
+                    ), classes )
+                  );
 
                   added = added.add( interNode ).add( source2inter ).add( inter2target );
 
                   break;
 
                 case 'flat':
-                  var edge = cy.add( Object.assign( {
-                    group: 'edges',
-                    data: {
-                      source: source.id(),
-                      target: target.id()
-                    }
-                  }, options().edgeParams( source, target, 0 ) ) ).addClass( classes );
+                  var edge = cy.add(
+                    addClassesToEleJson( assign(
+                      {
+                        group: 'edges',
+                        data: {
+                          source: source.id(),
+                          target: target.id()
+                        }
+                      },
+                      options().edgeParams( source, target, 0 )
+                    ), classes )
+                  );
 
                   added = added.add( edge );
 
@@ -931,6 +743,9 @@ SOFTWARE.
               var loopAllowed = options().loopAllowed( node );
               var isGhost = node.hasClass( 'edgehandles-ghost-node' );
               var noEdge = options().edgeType( source, node ) == null;
+
+              node.addClass('edgehandles-presumptive-target');
+
 
               if( isGhost || noEdge ) {
                 return;
@@ -962,11 +777,39 @@ SOFTWARE.
               var source = sourceNode;
 
               node.removeClass( 'edgehandles-target' );
+              node.removeClass( 'edgehandles-presumptive-target' );
+
               removePreview( source, target );
             }
           }
 
-          cy.ready( function( e ) {
+          function setHandleDimensions( node ){
+            var p = node.renderedPosition();
+            var h = node.renderedHeight();
+            var w = node.renderedWidth();
+
+            hr = options().handleSize / 2 * cy.zoom();
+
+            // store how much we should move the handle from origin(p.x, p.y)
+            var moveX = 0;
+            var moveY = 0;
+
+            // grab axis's
+            var axisX = options().handlePosition.split(' ')[0].toLowerCase();
+            var axisY = options().handlePosition.split(' ')[1].toLowerCase();
+
+            // based on handlePosition move left/right/top/bottom. Middle/middle will just be normal
+            if(axisX == 'left') moveX = -(w / 2);
+            else if(axisX == 'right') moveX = w / 2;
+            if(axisY == 'top') moveY = -(h / 2);
+            else if(axisY == 'bottom') moveY = h / 2;
+
+            // set handle x and y based on adjusted positions
+            hx = p.x + moveX;
+            hy = p.y + moveY;
+          }
+
+          cy.ready( function() {
             lastPanningEnabled = cy.panningEnabled();
             lastZoomingEnabled = cy.zoomingEnabled();
             lastBoxSelectionEnabled = cy.boxSelectionEnabled();
@@ -983,7 +826,7 @@ SOFTWARE.
             var lastMdownHandler;
 
             var startHandler, hoverHandler, leaveHandler, grabNodeHandler, freeNodeHandler, dragNodeHandler, forceStartHandler, removeHandler, cxtstartHandler, tapToStartHandler, cxtdragHandler, cxtdragoverHandler, cxtdragoutHandler, cxtendHandler, dragHandler, grabHandler;
-            cy.on( 'mouseover tap', 'node', startHandler = function( e ) {
+            cy.on( 'mouseover tap', 'node', startHandler = function() {
               var node = this;
 
               if( disabled() || drawMode || mdownOnHandle || grabbingNode || this.hasClass( 'edgehandles-preview' ) || inForceStart || this.hasClass( 'edgehandles-ghost-node' ) || node.filter( options().handleNodes ).length === 0 ) {
@@ -998,38 +841,15 @@ SOFTWARE.
                 $container[ 0 ].removeEventListener( 'touchstart', lastMdownHandler, true );
               }
 
-              var source = this;
-              var p = node.renderedPosition();
-              var h = node.renderedOuterHeight();
-              var w = node.renderedOuterWidth();
-
               lastActiveId = node.id();
 
               // remove old handle
               clearDraws();
 
-              hr = options().handleSize / 2 * cy.zoom();
-
-              // store how much we should move the handle from origin(p.x, p.y)
-              var moveX = 0;
-              var moveY = 0;
-
-              // grab axis's
-              var axisX = options().handlePosition.split(' ')[0].toLowerCase();
-              var axisY = options().handlePosition.split(' ')[1].toLowerCase();
-
-              // based on handlePosition move left/right/top/bottom. Middle/middle will just be normal
-              if(axisX == 'left') moveX = -(w / 2);
-              else if(axisX == 'right') moveX = w / 2;
-              if(axisY == 'top') moveY = -(h / 2);
-              else if(axisY == 'bottom') moveY = h / 2;
-
-              // set handle x and y based on adjusted positions
-              hx = p.x + moveX;
-              hy = p.y + moveY;
+              setHandleDimensions( node );
 
               // add new handle
-              drawHandle( hx, hy, hr );
+              drawHandle();
 
               node.trigger( 'cyedgehandles.showhandle' );
 
@@ -1042,7 +862,7 @@ SOFTWARE.
                 var pageY = !e.touches ? e.pageY : e.touches[ 0 ].pageY;
                 var x = pageX - $container.offset().left;
                 var y = pageY - $container.offset().top;
-                var hrTarget = hr;
+                var hrTarget = hr + options().handleHitThreshold;
 
                 if( e.button !== 0 && !e.touches ) {
                   return; // sorry, no right clicks allowed
@@ -1068,14 +888,13 @@ SOFTWARE.
                 node.addClass( 'edgehandles-source' );
                 node.trigger( 'cyedgehandles.start' );
 
-                function doneMoving( dmEvent ) {
+                function doneMoving() {
                   // console.log('doneMoving %s %o', node.id(), node);
 
                   if( !mdownOnHandle || inForceStart ) {
                     return;
                   }
 
-                  var $this = $( this );
                   mdownOnHandle = false;
                   $( window ).off( 'mousemove touchmove', moveHandler );
 
@@ -1103,14 +922,14 @@ SOFTWARE.
                 var x = pageX - $container.offset().left;
                 var y = pageY - $container.offset().top;
 
-                mx = x; 
-                my = y; 
+                mx = x;
+                my = y;
 
                 if( options().handleLineType !== 'ghost' ) {
                   clearDraws();
-                  drawHandle( hx, hy, hr );
+                  drawHandle();
                 }
-                drawLine( hx, hy, x, y );
+                drawLine( x, y );
 
 
                 return false;
@@ -1121,9 +940,8 @@ SOFTWARE.
               lastMdownHandler = mdownHandler;
 
 
-            } ).on( 'mouseover tapdragover', 'node', hoverHandler = function() {
+            } ).on( 'mouseover tapdragover', 'node', hoverHandler = function(e) {
               var node = this;
-              var target = this;
 
               // console.log('mouseover hoverHandler')
 
@@ -1131,7 +949,8 @@ SOFTWARE.
                 return; // ignore preview nodes
               }
 
-              if( mdownOnHandle ) { // only handle mdown case
+              // n.b. only desktop mouse events can show hover preview in force mode
+              if( mdownOnHandle || (inForceStart && e.type === 'mouseover') ) {
 
                 // console.log( 'mouseover hoverHandler %s $o', node.id(), node );
 
@@ -1140,14 +959,15 @@ SOFTWARE.
                 return false;
               }
 
-            } ).on( 'mouseout tapdragout', 'node', leaveHandler = function() {
+            } ).on( 'mouseout tapdragout', 'node', leaveHandler = function(e) {
               var node = this;
 
               if( drawMode ) {
                 return;
               }
 
-              if( mdownOnHandle ) {
+              // n.b. only desktop mouse events can show hover preview in force mode
+              if( mdownOnHandle || (inForceStart && e.type === 'mouseout') ) {
                 hoverOut( node );
               }
 
@@ -1198,13 +1018,26 @@ SOFTWARE.
               var h = node.renderedOuterHeight();
               var w = node.renderedOuterWidth();
 
-              var hr = options().handleSize / 2 * cy.zoom();
-              var hx = p.x;
-              var hy = p.y - h / 2;
+              setHandleDimensions( node );
 
-              drawHandle( hx, hy, hr );
+              drawHandle();
 
               node.trigger( 'cyedgehandles.showhandle' );
+
+              var moveHandler = function( me ) {
+                var offset = $container.offset();
+                var x = ( me.pageX !== undefined ? me.pageX : me.touches[ 0 ].pageX ) - offset.left;
+                var y = ( me.pageY !== undefined ? me.pageY : me.touches[ 0 ].pageY ) - offset.top;
+
+                mx = x;
+                my = y;
+
+                if( options().handleLineType !== 'ghost' ) {
+                  clearDraws();
+                  drawHandle();
+                }
+                drawLine( x, y );
+              };
 
               // case: down and drag as normal
               var downHandler = function( e ) {
@@ -1221,20 +1054,6 @@ SOFTWARE.
                   disableGestures();
                   mdownOnHandle = true; // enable the regular logic for handling going over target nodes
 
-                  var moveHandler = function( me ) {
-                    var x = ( me.pageX !== undefined ? me.pageX : me.touches[ 0 ].pageX ) - $container.offset().left;
-                    var y = ( me.pageY !== undefined ? me.pageY : me.touches[ 0 ].pageY ) - $container.offset().top;
-
-                    mx = x; 
-                    my = y; 
-
-                    if( options().handleLineType !== 'ghost' ) {
-                      clearDraws();
-                      drawHandle( hx, hy, hr );
-                    }
-                    drawLine( hx, hy, x, y );
-                  }
-
                   $container[ 0 ].addEventListener( 'mousemove', moveHandler, true );
                   $container[ 0 ].addEventListener( 'touchmove', moveHandler, true );
 
@@ -1250,7 +1069,7 @@ SOFTWARE.
                     options().stop( node );
                     node.trigger( 'cyedgehandles.stop' );
 
-                    cy.off( 'tap', 'node', tapHandler );
+                    cy.off( 'tap', tapHandler );
                     node.off( 'remove', removeBeforeHandler );
                     resetToDefaultState();
                   } );
@@ -1268,24 +1087,10 @@ SOFTWARE.
               node.one( 'remove', function() {
                 $container[ 0 ].removeEventListener( 'mousedown', downHandler, true );
                 $container[ 0 ].removeEventListener( 'touchstart', downHandler, true );
-                cy.off( 'tap', 'node', tapHandler );
+                cy.off( 'tap', tapHandler );
               } );
 
-              // case: tap a target node
-              var tapHandler;
-              cy.one( 'tap', 'node', tapHandler = function() {
-                var target = this;
-
-                var isLoop = source.id() === target.id();
-                var loopAllowed = options().loopAllowed( target );
-
-                if( !isLoop || ( isLoop && loopAllowed ) ) {
-                  makeEdges( false, source, target );
-
-                  //options().complete( node );
-                  //node.trigger('cyedgehandles.complete');
-                }
-
+              function stopForceMode( node ){
                 inForceStart = false; // now we're done so reset the flag
 
                 options().stop( node );
@@ -1293,9 +1098,37 @@ SOFTWARE.
 
                 $container[ 0 ].removeEventListener( 'mousedown', downHandler, true );
                 $container[ 0 ].removeEventListener( 'touchstart', downHandler, true );
+                $container[ 0 ].removeEventListener( 'mousemove', moveHandler, true );
                 node.off( 'remove', removeBeforeHandler );
+
                 resetToDefaultState();
+              }
+
+              // case: tap a target node
+              var tapHandler;
+              cy.one( 'tap', tapHandler = function(e) {
+                var target = e.target || e.cyTarget; // 3.x | 2.x
+
+                if( target === cy ){ // tap bg cancels force gesture
+                  stopForceMode( node );
+
+                  return;
+                } else if( target.isNode() ){ // tap node completes force gesture
+                  var isLoop = source.id() === target.id();
+                  var loopAllowed = options().loopAllowed( target );
+
+                  if( !isLoop || ( isLoop && loopAllowed ) ) {
+                    makeEdges( false, source, target );
+                  }
+
+                  stopForceMode( node );
+                }
               } );
+
+              // in the forced start, we use the above tap case but we can still preview on desktop mousemove
+              if( inForceStart ){
+                $container[ 0 ].addEventListener( 'mousemove', moveHandler, true );
+              }
 
 
             } ).on( 'remove', 'node', removeHandler = function() {
@@ -1311,6 +1144,10 @@ SOFTWARE.
             } ).on( 'cxttapstart tapstart', 'node', cxtstartHandler = function( e ) {
               var node = this;
 
+              if( disabled() ) {
+                return; // prevent drawing an edge whenever the extension is disabled
+              }
+
               if( node.filter( options().handleNodes ).length === 0 ) {
                 return; // skip if node not allowed
               }
@@ -1322,23 +1159,18 @@ SOFTWARE.
 
                 clearDraws(); // clear just in case
 
-                var node = sourceNode = this;
-                var source = node;
+                disableGestures(); // cases like draw mode need this
+
+                node = sourceNode = this;
 
                 lastActiveId = node.id();
 
                 node.trigger( 'cyedgehandles.start' );
                 node.addClass( 'edgehandles-source' );
 
-                var p = node.renderedPosition();
-                var h = node.renderedOuterHeight();
-                var w = node.renderedOuterWidth();
+                setHandleDimensions( node );
 
-                hr = options().handleSize / 2 * cy.zoom();
-                hx = p.x;
-                hy = p.y - h / 2 - hr / 2;
-
-                drawHandle( hx, hy, hr );
+                drawHandle();
 
                 node.trigger( 'cyedgehandles.showhandle' );
 
@@ -1351,10 +1183,10 @@ SOFTWARE.
               var cxtOk = options().cxt && e.type === 'cxtdrag';
               var tapOk = drawMode && e.type === 'tapdrag';
 
-              if( ( cxtOk || tapOk ) && sourceNode ) {
-                var rpos = e.cyRenderedPosition;
+              if( !disabled() && ( cxtOk || tapOk ) && sourceNode ) {
+                var rpos = e.renderedPosition || e.cyRenderedPosition;
 
-                drawLine( hx, hy, rpos.x, rpos.y );
+                drawLine( rpos.x, rpos.y );
 
               }
 
@@ -1392,38 +1224,30 @@ SOFTWARE.
                 if( sourceNode ) {
                   options().stop( sourceNode );
                   sourceNode.trigger( 'cyedgehandles.stop' );
-
-                  options().complete( sourceNode );
                 }
 
                 resetToDefaultState();
               }
 
             } ).on( 'tap', 'node', tapToStartHandler = function() {
-              return;
-              var node = this;
-
-              if( !sourceNode ) { // must not be active
-                setTimeout( function() {
-                  if( node.filter( options().handleNodes ).length === 0 ) {
-                    return; // skip if node not allowed
-                  }
-
-                  clearDraws(); // clear just in case
-
-                  var p = node.renderedPosition();
-                  var h = node.renderedOuterHeight();
-                  var w = node.renderedOuterWidth();
-
-                  var hr = options().handleSize / 2 * cy.zoom();
-                  var hx = p.x;
-                  var hy = p.y - h / 2;
-
-                  drawHandle( hx, hy, hr );
-
-                  node.trigger( 'cyedgehandles.showhandle' );
-                }, 16 );
-              }
+              // TODO can this be re-enabled and exposed behind an option?
+              // var node = this;
+              //
+              // if( !sourceNode ) { // must not be active
+              //   setTimeout( function() {
+              //     if( node.filter( options().handleNodes ).length === 0 ) {
+              //       return; // skip if node not allowed
+              //     }
+              //
+              //     clearDraws(); // clear just in case
+              //
+              //     setHandleDimensions( node );
+              //
+              //     drawHandle();
+              //
+              //     node.trigger( 'cyedgehandles.showhandle' );
+              //   }, 16 );
+              // }
 
             } );
 
@@ -1443,7 +1267,10 @@ SOFTWARE.
                 .off( 'cxtdrag', cxtdragHandler )
                 .off( 'cxtdragover', 'node', cxtdragoverHandler )
                 .off( 'cxtdragout', 'node', cxtdragoutHandler )
-                .off( 'tap', 'node', tapToStartHandler );
+                .off( 'tap', 'node', tapToStartHandler )
+                .off( 'drag', 'node', dragHandler )
+                .off( 'grab', 'node', grabHandler )
+              ;
 
               cy.unbind( 'zoom pan', transformHandler );
 
@@ -1460,9 +1287,7 @@ SOFTWARE.
         },
 
         start: function( id ) {
-          var $container = $( this );
-
-          cy.ready( function( e ) {
+          cy.ready( function() {
             cy.$( '#' + id ).trigger( 'cyedgehandles.forcestart' );
           } );
         }
@@ -1473,26 +1298,28 @@ SOFTWARE.
       } else if( typeof fn == 'object' || !fn ) {
         return functions.init.apply( container, arguments );
       } else {
-        console.error( 'No such function `' + fn + '` for edgehandles' );
+        throw new Error( 'No such function `' + fn + '` for edgehandles' );
       }
     };
 
+    console.log("Registered EdgeHandles!!!");
     $$( 'core', 'edgehandles', edgehandles );
-
   };
 
-  if( typeof module !== 'undefined' && module.exports ) { // expose as a commonjs module
-    module.exports = register;
-  }
+  /* global _, define, cytoscape */
 
-  if( typeof define !== 'undefined' && define.amd ) { // expose as an amd/requirejs module
+  if( typeof module !== 'undefined' && module.exports ) { // expose as a commonjs module
+    module.exports = function( $$ ){
+      register( $$, require('lodash.debounce'), require('lodash.throttle') );
+    };
+  } else if( typeof define !== 'undefined' && define.amd ) { // expose as an amd/requirejs module
     define( 'cytoscape-edgehandles', function() {
       return register;
     } );
   }
 
-  if( $$ ) { // expose to global cytoscape (i.e. window.cytoscape)
-    register( $$ );
+  if( $$ && typeof _ !== 'undefined' ) { // expose to global cytoscape (i.e. window.cytoscape)
+    register( $$, _.debounce.bind( _ ), _.throttle.bind( _ ) );
   }
 
 } )( typeof cytoscape !== 'undefined' ? cytoscape : null );
