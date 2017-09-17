@@ -318,19 +318,8 @@
 
 
 (defn dag? [graph]
-  (let [start-nodes (find-start-nodes graph)
-        start-node (first start-nodes)]
-    (if (not= (count start-nodes) 1)
-      false
-      (loop [remaining-nodes [start-node]
-             visited-node-ids #{}]
-        (if (empty? remaining-nodes)
-          (= (count visited-node-ids) (count (:nodes graph)))
-          (let [head (first remaining-nodes)]
-            (if (contains? visited-node-ids (:id head))
-              false
-              (recur (concat (rest remaining-nodes) (successors head graph))
-                     (conj visited-node-ids (:id head))))))))))
+  (and (= 1 (count (connected-components graph)))
+       (loopless? graph)))
 
 
 (defn executable?
