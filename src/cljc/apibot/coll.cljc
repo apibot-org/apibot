@@ -51,6 +51,12 @@
   (and (string? x) (not (empty? x))))
 
 
+(defn or-empty?
+  "If x is nil or empty, return y otherwise x."
+  [x y]
+  (if (or (nil? x) (empty? x))
+    y x))
+
 
 (defn remove-element-at
   "Removes the element at the given index from a vector."

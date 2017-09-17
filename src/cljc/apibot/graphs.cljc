@@ -616,7 +616,22 @@
 (spec/fdef prettify
            :args (spec/cat :graph (spec/and ::custom-graph dag?)))
 
+(defn contains-nodes-by-graph?
+  "Returns true if there is a node in graph that was instantiated from graph-id"
+  [graph-id graph]
+  (->> (:nodes graph)
+       (filter #(= (:graph-id %) graph-id))
+       (empty?)
+       (not)))
+
+
 ;; ---- Graphs (plural) ----
+
+(defn find-usages
+  "Searches the given graphs for nodes that were instantiated from the given graph.
+  Returns all graphs that use the given graph-id."
+  [graph-id graphs]
+  (filter #(contains-nodes-by-graph? graph-id %) graphs))
 
 (defn map-graph-if
   [filter-func map-func graphs]

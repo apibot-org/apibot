@@ -41,7 +41,8 @@
 
      [:p.list-group-item-heading
       (when editable
-        {:on-click (fn [e] (router/goto-editor (:id graph)))})
+        {:role "button"
+         :on-click (fn [e] (router/goto-editor (:id graph)))})
       (when executable [glyphicon-run])
       [:b (if (empty? (label graph)) [:i "no name"] (label graph))]]
 

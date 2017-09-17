@@ -8,7 +8,8 @@
     [apibot.views.commons :as commons]
     [apibot.views.executables :as executables]
     [promesa.core :as p]
-    [reagent.core :refer [cursor atom]]))
+    [reagent.core :refer [cursor atom]]
+    [apibot.coll :as coll]))
 
 (defn create-tasks
   "Creates a set of tasks from the app-state"
@@ -95,7 +96,7 @@
                 [:div
                  [:a.btn.btn-link
                   {:href (str "#editor/" (:id graph))}
-                  (graphs/label graph)]]]
+                  (coll/or-empty? (graphs/label graph) [:i "no name"])]]]
                [:td
                 [executables/execution-result-view (:id graph) *bound-promise]]]))]]]
        [tasks-dialog-footer *expanded *executions]])))

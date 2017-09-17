@@ -136,6 +136,7 @@
              [:tr {:key graph-id}
               [:td {:style {:width "40%"}}
                [glyphicon-run]
-               [:a {:href (str "#editor/" graph-id)} (label graph)]]
+               [:a {:href (str "#editor/" graph-id)}
+                (coll/or-empty? (label graph) [:i "no name"])]]
               [:td
                [execution-result-view graph-id *bound-promise]]])))]]]))

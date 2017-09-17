@@ -56,7 +56,7 @@
 (defn message-dialog [title message]
   [generic-dialog
    title
-   [:p message]
+   [:div message]
    [:div
     [:button.btn.btn-primary
      {:type "button" :on-click #(do (hide!))}

@@ -8,7 +8,33 @@
     [apibot.views.commons :refer [form-group-bindable glyphicon-run]]
     [apibot.views.dialogs :as dialogs]
     [apibot.state :refer [*graphs]]
-    [reagent.core :refer [cursor]]))
+    [reagent.core :refer [cursor]]
+    [apibot.router :as router]))
+
+(defn dialog-show-usages
+  [graph usages-graphs]
+  (dialogs/message-dialog
+    "Cannot Delete Graph"
+    [:div
+     [:p "Graph " (coll/or-empty? (graphs/label graph) [:i "no name"])
+      " cannot be deleted because it is being used by "]
+     [:ul
+      (doall
+        (for [g usages-graphs]
+          [:li {:key (:id g)}
+           [:a {:role "button" :on-click (fn [e]
+                                           (dialogs/hide!)
+                                           (router/goto-editor (:id g)))}
+            (coll/or-empty? (graphs/label g) [:i "no name"])]]))]
+     [:p "Please remove all usages to continue."]]))
+
+(defn dialog-confirm-deletion
+  [graph]
+  (dialogs/dialog-are-you-sure?
+    "Deleting a Graph"
+    [:span "Are you sure you want to delete " [:b (label graph)] "? This operation cannot be reverted."]
+    (fn []
+      (coll/swapr! *graphs remove-graph graph))))
 
 (defn graph
   [*graph]
@@ -18,8 +44,8 @@
       {:style {:margin-top "30px"}}
       "Graph "
       (if (empty? label)
-       [:i "no name"]
-       [:span.text-info label])])
+        [:i "no name"]
+        [:span.text-info label])])
    [:form
     (form-group-bindable
       {:name        "Name"
@@ -28,9 +54,9 @@
       (cursor *graph [:name]))
     (form-group-bindable
       :textarea
-      {:name "Description"
+      {:name        "Description"
        :placeholder "Enter a description for this graph. This serves mostly as documentation."
-       :spec ::grexec/description}
+       :spec        ::grexec/description}
       (cursor *graph [:desc]))
     [:div.checkbox
      [:label
@@ -44,16 +70,18 @@
       " Executable"
       [:p.help-block "Only graphs marked with executable can be run."]]]]
 
+   ; -- Delete Graph Button --
    [:button.btn.btn-danger
     {:type "button"
      :on-click
            (fn [e]
-             (dialogs/show!
-               (dialogs/dialog-are-you-sure?
-                 "Deleting a Graph"
-                 [:span "Are you sure you want to delete " [:b (label @*graph)] "? This operation cannot be reverted."]
-                 (fn []
-                     (reset! *graphs (remove-graph @*graph @*graphs))))))}
+             (let [graph @*graph
+                   graphs @*graphs
+                   usages (graphs/find-usages (:id graph) graphs)]
+               (dialogs/show!
+                 (if (empty? usages)
+                   (dialog-confirm-deletion graph)
+                   (dialog-show-usages graph usages)))))}
     [:span.glyphicon.glyphicon-trash]
     " Delete Graph"]
 

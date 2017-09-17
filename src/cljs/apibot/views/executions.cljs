@@ -9,7 +9,8 @@
     [apibot.state :refer [*execution-history>filter-graph-id]]
     [promesa.core :as p]
     [reagent.core :refer [atom cursor]]
-    [apibot.router :as router]))
+    [apibot.router :as router]
+    [apibot.coll :as coll]))
 
 ;; ---- Model ----
 
@@ -36,7 +37,7 @@
 (defn table-row [execution]
   (let [{:keys [name created-at]} execution]
     [:tr
-     [:td name]
+     [:td (coll/or-empty? name [:i "no name"])]
      [:td [executables/execution-result-view2 execution]]
      [:td (str (new js/Date created-at))]]))
 
