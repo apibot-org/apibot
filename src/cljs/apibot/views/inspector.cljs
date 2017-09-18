@@ -20,7 +20,7 @@
     [apibot.state :refer [*selected-graph *selected-node-ids]]
     [apibot.coll :as coll]))
 
-(def paper-nested-graph (paper/create-paper-class "selected-nested-graph"))
+(def paper-nested-graph (paper/create-readonly-paper-class "selected-nested-graph"))
 
 (defn render-selected-node
   [*app-state *selected-node]

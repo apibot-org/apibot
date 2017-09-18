@@ -8,13 +8,41 @@
     [apibot.views.commons :refer [subscribe unsubscribe]]
     [reagent.core :as reagent]
     [apibot.views.dialogs :as dialogs]
-    [apibot.state :refer [*selected-node-ids]]
-    [apibot.coll :as coll]))
+    [apibot.state :refer [*selected-node-ids *selected-graph]]
+    [apibot.coll :as coll]
+    [apibot.util :as util]))
 
 ;; ---- Model ----
 
+(defn state-at [this ks]
+  (-> (reagent/state this)
+      (get-in ks)))
+
 (defn event->id [e]
   (-> e .-target .id))
+
+(defn cyto-node->node [node]
+  {:id               (.id node)
+   :renderedPosition (-> node .renderedPosition util/js->clj)
+   :width            (.renderedWidth node)
+   :height           (.renderedHeight node)})
+
+(defn event->node [e]
+  (let [node (-> e .-target)]
+    (cyto-node->node node)))
+
+(defn cyto-edge->edge [edge]
+  (when (and (.source edge) (.target edge))
+    (let [source (:renderedPosition (cyto-node->node (.source edge)))
+          target (:renderedPosition (cyto-node->node (.target edge)))]
+      {:id               (.id edge)
+       :renderedPosition {:x (/ (+ (:x source) (:x target)) 2)
+                          :y (/ (+ (:y source) (:y target)) 2)}})))
+
+(defn event->edge [e]
+  (let [edge (-> e .-target)]
+    (cyto-edge->edge edge)))
+
 
 (defn send-graph-updates [cy **selected-graph]
   (let [elements (-> (.json @cy)
@@ -22,28 +50,61 @@
                      (:elements))]
     (swapr! @**selected-graph graphs/cytoscape->graph elements)))
 
-(defn duplicate-node
-  "Given a cytoscape ele as argument, it clones the node and adds it to the graph."
-  [ele]
-  (track :ev-paper-duplicate-node)
-  (let [cloned (.clone ele)
-        new-text (str (.data cloned "text") " - COPY")
-        new-id (graphs/uuid!)
-        rand (rand-int 10)
-        new-x (+ (.position cloned "x") 20 rand)
-        new-y (+ (.position cloned "y") 20 rand)]
-    (-> cloned
-        (.json)
-        (js->clj)
-        (assoc-in ["data" "id"] new-id)
-        (assoc-in ["data" "text"] new-text)
-        (assoc-in ["position" "x"] new-x)
-        (assoc-in ["position" "y"] new-y)
-        (assoc-in ["data" "node" "id"] new-id)
-        (assoc-in ["data" "node" "name"] new-text)
-        (assoc-in ["data" "node" "position" "x"] new-x)
-        (assoc-in ["data" "node" "position" "y"] new-y)
-        (clj->js))))
+;; ---- Views ----
+
+(defn menu-node [*cy *state]
+  (let [{:keys [selected-node]} @*state
+        *show-menu (reagent/cursor *state [:show-menu])]
+    (when (and selected-node (= 1 (count @*selected-node-ids)))
+      (let [{:keys [renderedPosition width height id]} selected-node
+            {:keys [x y]} renderedPosition]
+        [:button.btn.btn-link
+         {:style          {:left      (+ x (/ width 2))
+                           :top       (- y (/ height 2) 30)
+                           :padding   0
+                           :margin    0
+                           :font-size "25px"
+                           :position  "absolute"
+                           :z-index   1000000}
+          :on-mouse-enter #(reset! *show-menu true)}
+         [:span.glyphicon.glyphicon-plus-sign]
+         [:ul.dropdown-menu
+          {:style          {:display (if @*show-menu "block" "none")}
+           :on-mouse-leave #(reset! *show-menu false)}
+          [:li>a
+           {:on-click #(.edgehandles @*cy "start" id)}
+           [:span.glyphicon.glyphicon-share-alt]
+           " Connect"]
+          [:li>a
+           {:on-click #(swapr! *selected-graph graphs/remove-nodes-by-id id)}
+           [:span.glyphicon.glyphicon-trash]
+           " Remove"]
+          [:li>a
+           {:on-click #(swapr! *selected-graph graphs/duplicate-node id)}
+           [:span.glyphicon.glyphicon-copy]
+           " Clone"]
+          [:li>a
+           {:on-click #(swapr! *selected-graph graphs/disconnect-node id)}
+           [:span.glyphicon.glyphicon-scissors]
+           " Disconnect"]]]))))
+
+(defn menu-edge [*cy *state]
+  (let [{:keys [selected-edge]} @*state]
+    (when selected-edge
+      (let [{:keys [renderedPosition width height id]} selected-edge
+            {:keys [x y]} renderedPosition]
+        [:button.btn.btn-link
+         {:style    {:left      (- x (/ width 2))
+                     :top       (- y (/ height 2))
+                     :padding   0
+                     :margin    0
+                     :font-size "25px"
+                     :position  "absolute"
+                     :z-index   1000000}
+          :on-click (fn [e]
+                      (swapr! *selected-graph graphs/remove-edges-by #(= (:id %) id)))}
+         [:span.glyphicon.glyphicon-trash]]))))
+
 
 ;; ---- View Config ----
 
@@ -123,102 +184,26 @@
     "css"      {"target-arrow-shape" "triangle"
                 "curve-style"        "bezier"
                 "width"              "2px"
-                "background-color"   "#9d9d9d"}}
-   {"selector" ":selected"
+                "line-color"         "#aaa"
+                "target-arrow-color" "#aaa"}}
+   {"selector" "edge:selected"
+    "style"    {"line-color"         "#337ab7"
+                "target-arrow-color" "#337ab7"}}
+   {"selector" "node:selected"
     "style"    {"border-color" "#333"}}])
 
 (def layout
   {"name" "preset"})
 
 ;; ---- Cytoscape General Configuration ----
-(defn cytoscape-config [id selected-graph custom-layout]
+(defn cytoscape-config [id **selected-graph custom-layout]
   {"container" (-> js/document (.getElementById id))
-   "elements"  (graph->cytoscape @@selected-graph)
+   "elements"  (graph->cytoscape @@**selected-graph)
    "style"     (clj->js style)
    "layout"    (clj->js (or custom-layout layout))
    "minZoom"   0.2
    "maxZoom"   3})
 
-;; ---- Context Menu Configuration ----
-(defn cxt-config [cy selected-graph]
-  {:menuRadius          80                                  ;; the radius of the circular menu in pixels
-   :selector            "node, edge"                        ;; elements matching this Cytoscape.js selector will trigger cxtmenus
-   :commands
-                        [{:content "Remove"
-                          :select
-                                   (fn [ele]
-                                     (track :ev-paper-remove)
-                                     (.remove @cy (str "#" (.id ele)))
-                                     (send-graph-updates cy selected-graph))}
-
-                         {:content "Clone"
-                          :select
-                                   (fn [ele]
-                                     (track :ev-paper-clone)
-                                     (if (= "nodes" (.group ele))
-                                       (let [node (duplicate-node ele)]
-                                         (.add @cy node)
-                                         (send-graph-updates cy selected-graph))
-                                       (dialogs/show!
-                                         (dialogs/message-dialog
-                                           "Oopsie!"
-                                           "You were trying to clone an edge but only nodes can be cloned."))))}
-
-                         {:content "Disconnect"
-                          :select
-                                   (fn [ele]
-                                     (track :ev-paper-disconnect)
-                                     (if (= "nodes" (.group ele))
-                                       (let [edges (find-edges (fn [{:keys [source target]}]
-                                                                 (or (= source (.id ele))
-                                                                     (= target (.id ele))))
-                                                               @@selected-graph)
-                                             edge-ids (map :id edges)]
-                                         (doseq [edge-id edge-ids]
-                                           (.remove @cy (str "#" edge-id)))
-                                         (send-graph-updates cy selected-graph))
-                                       (do
-                                         (.remove @cy (str "#" (.id ele)))
-                                         (send-graph-updates cy selected-graph))))}]
-
-   ;; the background colour of the menu
-   :fillColor           "rgba(51, 51, 51, 0.75)"
-
-   ;; the colour used to indicate the selected command
-   :activeFillColor     "rgba(51, 122, 183, 0.75)"
-
-   ;; additional size in pixels for the active command
-   :activePadding       5
-
-   ;; the size in pixels of the pointer to the active command
-   :indicatorSize       20
-
-   ;; the empty spacing in pixels between successive commands
-   :separatorWidth      2
-
-   ;; extra spacing in pixels between the element and the spotlight
-   :spotlightPadding    4
-
-   ;; the minimum radius in pixels of the spotlight
-   :minSpotlightRadius  24
-
-   ;; the maximum radius in pixels of the spotlight
-   :maxSpotlightRadius  38
-
-   ;; space-separated cytoscape events that will open the menu; only `cxttapstart` and/or `taphold` work here
-   :openMenuEvents      "taphold"
-
-   ;; the colour of text in the command's content
-   :itemColor           "white"
-
-   ;; the text shadow colour of the command's content
-   :itemTextShadowColor "black"
-
-   ;; the z-index of the ui div
-   :zIndex              9999
-
-   ;; draw menu at mouse position
-   :atMouse             false})
 
 (defn image-from-url [url]
   (let [img (new js/Image url)]
@@ -228,7 +213,7 @@
     img))
 
 ;; ---- Edge Handles Plugin Configuration ----
-(defn edgehandles-config [cy selected-graph]
+(defn edgehandles-config [cy **selected-graph]
   {;; If you hover over a node and then leave the node, don't create an edge.
    :toggleOffOnLeave   true
 
@@ -240,27 +225,51 @@
    :handleOutlineColor "#2e6da4"
    :handleOutlineWidth 1
 
+   ;; Can return 'flat' for flat edges between nodes or 'node' for intermediate node between them
+   ;; returning null/undefined means an edge can't be added between the two nodes
+   :edgeType           (fn [source-node target-node]
+                         (if (graphs/connected? (.id source-node) (.id target-node) @@**selected-graph)
+                           nil "flat"))
+
    ;; for the specified node, return whether edges from itself to itself are allowed
    :loopAllowed        (fn [node] false)
 
    ;; this handler is executed when the edge is susccessfuly added
    :complete           (fn [source-node target-node added-entities]
-                         (send-graph-updates cy selected-graph))})
+                         (swapr! @**selected-graph graphs/conj-edge
+                                 {:id     (graphs/uuid!)
+                                  :source (.id source-node)
+                                  :target (.id target-node)}))})
 
 ;; ---- Initialize the Cytoscape Graph ----
 
-(defn- init-cytoscape [id cy **selected-graph layout]
+(defn- init-cytoscape [this id cy **selected-graph layout]
   (let [cyto (js/cytoscape (clj->js (cytoscape-config id **selected-graph layout)))]
-    ;; Initialize the cxtmenu extension
-    (.cxtmenu cyto (clj->js (cxt-config cy **selected-graph)))
 
     ;; Initializing the edgehandles extension
     (.edgehandles cyto (clj->js (edgehandles-config cy **selected-graph)))
 
     (.on cyto "select" "node"
          (fn [e]
-           (let [node-id (event->id e)]
+           (let [node-id (event->id e)
+                 node (event->node e)]
+             (reagent/set-state this {:selected-node node})
              (swap! *selected-node-ids conj node-id))))
+
+    (.on cyto "select" "edge"
+         (fn [e]
+           (let [edge (event->edge e)]
+             (reagent/set-state this {:selected-edge edge}))))
+
+    (.on cyto "render"
+         (fn [e]
+           (when-let [selected-node-id (state-at this [:selected-node :id])]
+             (when-let [node (.$ cyto (str "#" selected-node-id))]
+               (reagent/set-state this {:selected-node (cyto-node->node node)})))
+
+           (when-let [selected-edge-id (state-at this [:selected-edge :id])]
+             (when-let [edge (.$ cyto (str "#" selected-edge-id))]
+               (reagent/set-state this {:selected-edge (cyto-edge->edge edge)})))))
 
     (.on cyto "select" "edge"
          (fn [e]
@@ -269,7 +278,15 @@
     (.on cyto "unselect" "node"
          (fn [e]
            (let [node-id (event->id e)]
+             (when (= node-id (state-at this [:selected-node :id]))
+               (reagent/set-state this {:selected-node nil :show-menu false}))
              (swap! *selected-node-ids disj node-id))))
+
+    (.on cyto "unselect" "edge"
+         (fn [e]
+           (let [edge-id (event->id e)]
+             (when (= edge-id (state-at this [:selected-edge :id]))
+               (reagent/set-state this {:selected-edge nil})))))
 
     ;; Whenever a node is "freed" i.e. after dragging, update the position
     (.on cyto "free" "node"
@@ -319,11 +336,11 @@
            (when (graphs/singleton? new-graph)
              (.fit @cy))
            ;; return false indicating that this component doesn't need to update
-           false))
+           true))
 
        :component-did-mount
        (fn [this]
-         (init-cytoscape id cy **selected-graph layout))
+         (init-cytoscape this id cy **selected-graph layout))
 
        :component-will-unmount
        (fn [this]
@@ -332,4 +349,47 @@
        :reagent-render
        (fn [selected-graph-ratom]
          (reset! **selected-graph selected-graph-ratom)
-         [:div {:id id :style {:width "100%" :height "100%"}}])})))
+
+         (let [*state (reagent/state-atom (reagent/current-component))]
+           [:div
+            {:id id :style {:width "100%" :height "100%"}}
+            (menu-edge cy *state)
+            (menu-node cy *state)]))})))
+
+(defn create-readonly-paper-class [id & {:keys [layout]}]
+  (let [;; ---- State ----
+        ;; Hold the cytoscape atom here, This will only be available after the
+        ;; component has been mounted.
+        cy (atom nil)
+        *selected-graph (atom nil)]
+
+    (reagent/create-class
+      {:should-component-update
+       (fn [this [_ *old-graph] [_ *new-graph]]
+         (let [new-graph @*new-graph]
+           ;; HACK:
+           ;; always prevent component updates and do the updates manually
+           ;; here.
+           (let [cyto-graph (clj->js {:elements (graph->cytoscape new-graph)})]
+             (.json @cy cyto-graph))
+
+           ;; if the user is switching graphs, fit it to the screen!
+           ;; and unselect all nodes.
+           (.fit @cy)
+
+           ;; return false indicating that this component doesn't need to update
+           true))
+
+       :component-did-mount
+       (fn [this]
+         (init-cytoscape this id cy (atom *selected-graph) layout))
+
+       :component-will-unmount
+       (fn [this]
+         (unsubscribe id))
+
+       :reagent-render
+       (fn [selected-graph-ratom]
+         (reset! *selected-graph @selected-graph-ratom)
+         [:div
+          {:id id :style {:width "100%" :height "100%"}}])})))

@@ -122,10 +122,23 @@
           graph
           node-targets))
 
+
 (defn conj-node
   "Adds the given node to the graph."
   [node graph]
   (update graph :nodes conj node))
+
+(defn find-edges
+  "Finds all edges that match the given predicate."
+  [predicate graph]
+  (filter predicate (:edges graph)))
+
+(defn connected?
+  "Returns true if there is a node from A to B or from B to A"
+  [node-id-source node-id-target graph]
+  (not (empty? (find-edges (fn [{:keys [source target]}]
+                             (= #{source target} #{node-id-source node-id-target}))
+                           graph))))
 
 (defn conj-edge
   "Adds the given node to the graph."
@@ -415,7 +428,7 @@
                     graph)]
 
     ;; Finally return the new-graph without the nodes that are meant to be removed
-    (assoc new-graph :nodes to-keep)))
+    (assoc new-graph :nodes (into [] to-keep))))
 
 (defn remove-nodes-by-id
   "Removes a node by ID."
@@ -431,10 +444,29 @@
              (into []))]
     (assoc graph :nodes new-nodes)))
 
+(defn duplicate-node
+  "Finds and duplicates the node with the given ID"
+  [node-id graph]
+  (if-let [node (find-node-by-id node-id graph)]
+    (let [new-node (-> (assoc node :id (uuid!))
+                       (update-in [:position :x] + 20 (rand-int 10))
+                       (update-in [:position :y] + 20 (rand-int 10)))]
+      (conj-node new-node graph))
+    graph))
 
-(defn find-edges
-  [predicate graph]
-  (filter predicate (:edges graph)))
+(spec/fdef duplicate-node
+           :args (spec/cat :node-id string? :graph ::custom-graph))
+
+(defn disconnect-node
+  "Removes all edges coming to or from the given node."
+  [node-id graph]
+  (remove-edges-by #(contains? #{(:source %) (:target %)} node-id) graph))
+
+(spec/fdef disconnect-node
+           :args (spec/cat :node-id string? :graph ::custom-graph))
+
+
+
 
 (defn- expand-inner-graph
   [expandable-node inner-graph graphs graph]
