@@ -16,7 +16,7 @@
 
 (defn extract-header
   [node-ratom]
-  [:form
+  [:div
    (form-group-bindable
      {:name "Header Name"
       :spec ::extract-header-node/header

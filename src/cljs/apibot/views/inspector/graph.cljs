@@ -46,7 +46,7 @@
       (if (empty? label)
         [:i "no name"]
         [:span.text-info label])])
-   [:form
+   [:div
     (form-group-bindable
       {:name        "Name"
        :help        "Enter a name for this graph."

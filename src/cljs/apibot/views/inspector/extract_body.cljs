@@ -19,7 +19,7 @@
 
 (defn extract-body
   [node-ratom]
-  [:form
+  [:div
    [:h4 "Node " [:span.text-info "Extract Body"]]
    [:p.help-block "Extracts a value from the last request's HTTP body"]
    (form-group-bindable

@@ -19,7 +19,7 @@
 
 (defn assert-headers
   [*node]
-  [:form
+  [:div
    [:h4 "Node " [:span.text-info "Assert Headers"]]
    [:p.help-block "Performs an assertion over the last HTTP request's headers."]
    (form-group-bindable

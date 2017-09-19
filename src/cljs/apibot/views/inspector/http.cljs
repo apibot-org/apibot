@@ -88,7 +88,7 @@
     (fn []
       [dialogs/generic-dialog
        "Import Swagger Endpoint"
-       [:form
+       [:div
         [form-group-bindable
          :textarea
          {:name        "Swagger JSON"
@@ -188,7 +188,7 @@
                                 *query-param])))
         *body (cursor *node [:props :body])
         *url (cursor *node [:props :url])]
-    [:form
+    [:div
      #_[:div.form-group
         [:label "Import "]
         [:p

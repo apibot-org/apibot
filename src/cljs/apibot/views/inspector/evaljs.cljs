@@ -20,7 +20,7 @@
 
 (defn evaljs
   [node-ratom]
-  [:form
+  [:div
    [:h4 "Node " [:span.text-info "Evaluate Javascript"]]
    [:p.help-block "Evaluates an arbitrary function over the Scope. The new scope will be whatever the function returns."]
    (form-group-bindable

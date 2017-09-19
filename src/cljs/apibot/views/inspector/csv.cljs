@@ -40,7 +40,7 @@
   [*node *graph]
   (let [*rows (cursor *node [:props :rows])
         *delimiter (cursor *node [:props :delimiter])]
-    [:form
+    [:div
      (form-group-bindable
        {:name "Name"}
        (cursor *node [:name]))

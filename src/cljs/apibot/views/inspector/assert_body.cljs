@@ -20,7 +20,7 @@
 
 (defn assert-body
   [node-ratom]
-  [:form
+  [:div
    (form-group-bindable
      {:name "Name"}
      (cursor node-ratom [:name]))

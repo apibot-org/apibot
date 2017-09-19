@@ -20,7 +20,7 @@
 ;; XXX can't use the name 'assert' because its a core macro, jammer.
 (defn assert-view
   [node-ratom]
-  [:form
+  [:div
    (form-group-bindable
      {:name "Name"}
      (cursor node-ratom [:name]))

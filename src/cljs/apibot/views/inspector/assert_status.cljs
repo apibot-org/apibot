@@ -7,7 +7,7 @@
 
 (defn assert-status
   [node-ratom]
-  [:form
+  [:div
    [:h4 "Node " [:span.text-info "Assert Status"]]
    [:p.help-block "Performs an assertion over the last HTTP request's status code."]
    (form-group-bindable
