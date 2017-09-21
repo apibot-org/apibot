@@ -58,6 +58,13 @@
     y x))
 
 
+(defn in-range?
+  "Returns true if x is in the range of [from, to)"
+  [x from to]
+  (and (>= x from)
+       (< x to)))
+
+
 (defn remove-element-at
   "Removes the element at the given index from a vector."
   [vector idx]

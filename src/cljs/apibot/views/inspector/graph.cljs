@@ -16,7 +16,7 @@
   (dialogs/message-dialog
     "Cannot Delete Graph"
     [:div
-     [:p "Graph " (coll/or-empty? (graphs/label graph) [:i "no name"])
+     [:p "Graph " (commons/graph-name graph)
       " cannot be deleted because it is being used by "]
      [:ul
       (doall
@@ -25,7 +25,7 @@
            [:a {:role "button" :on-click (fn [e]
                                            (dialogs/hide!)
                                            (router/goto-editor (:id g)))}
-            (coll/or-empty? (graphs/label g) [:i "no name"])]]))]
+            (commons/graph-name graph)]]))]
      [:p "Please remove all usages to continue."]]))
 
 (defn dialog-confirm-deletion

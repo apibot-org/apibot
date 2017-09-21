@@ -4,7 +4,8 @@
     [cljs.spec.alpha :as s]
     [apibot.coll :as coll]
     [reagent.core :as reagent :refer [atom cursor]]
-    [promesa.core :as p]))
+    [promesa.core :as p]
+    [apibot.graphs :as graphs]))
 
 (defn warning-sign [title message]
   [:p.alert.alert-warning
@@ -13,6 +14,12 @@
    [:span.glyphicon.glyphicon-exclamation-sign]
    [:b " " title]
    message])
+
+(defn graph-name
+  "A simple helper method for displaying a graph's name and defaulting to 'no name' in case
+  there is no name."
+  [graph]
+  (coll/or-empty? (graphs/label graph) [:i "no name"]))
 
 (defn glyphicon-run []
   [:span.glyphicon.glyphicon-flash

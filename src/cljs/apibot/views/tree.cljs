@@ -33,15 +33,22 @@
     [:div
      (cond
        (nil? tree-obj)
-       [:samp "no contents"]
+       [:code "null"]
 
-       (or (string? tree-obj) (number? tree-obj) (boolean? tree-obj)
+       (string? tree-obj)
+       [:samp [:b"\""] tree-obj [:b "\""]]
+
+       (or (boolean? tree-obj)
+           (number? tree-obj)
            (instance? js/Error tree-obj)
            (fn? tree-obj))
        [:samp {:style {:white-space "pre"}} (str tree-obj)]
 
+       (and (map? tree-obj) (empty? tree-obj))
+       [:samp "{} " [:i "An empty map"]]
+
        (and (coll? tree-obj) (empty? tree-obj))
-       [:samp "empty collection"]
+       [:samp "[] " [:i "An empty collection"]]
 
        (map? tree-obj)
        (for [[k v] tree-obj]

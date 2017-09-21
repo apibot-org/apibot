@@ -580,7 +580,8 @@
 (defn matches-query?
   [query graph]
   (let [name (s/lower-case (or (label graph) ""))
-        desc (s/lower-case (or (:desc graph) ""))]
+        desc (s/lower-case (or (:desc graph) ""))
+        query (s/lower-case (or query ""))]
     (or (empty? query)
         (s/includes? name query)
         (s/includes? desc query))))

@@ -96,7 +96,7 @@
                 [:div
                  [:a.btn.btn-link
                   {:href (str "#editor/" (:id graph))}
-                  (coll/or-empty? (graphs/label graph) [:i "no name"])]]]
+                  (commons/graph-name graph)]]]
                [:td
                 [executables/execution-result-view (:id graph) *bound-promise]]]))]]]
        [tasks-dialog-footer *expanded *executions]])))

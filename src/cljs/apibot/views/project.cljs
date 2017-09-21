@@ -39,7 +39,7 @@
     {:role     "button"
      :on-click #(router/goto-editor (:id graph))
      :type     "button"}
-    (graphs/label graph)]])
+    (commons/graph-name graph)]])
 
 (defn buttons [*project]
   (let [project @*project]
@@ -70,7 +70,7 @@
          [:input.form-control
           {:type        "text"
            :value       @*query
-           :placeholder "Type a graph's name..."
+           :placeholder "Type a graph's name to assign to project..."
            :on-change   #(reset! *query (-> % .-target .-value))}]
 
          ;; -- The DropDown --
@@ -85,7 +85,7 @@
                   {:on-click (fn [e]
                                (let [*graph (state/find-graph-cursor (:id graph))]
                                  (coll/swap-in! *graph [:projects] conj (:id @*project))))}
-                  (graphs/label graph)]]))])]))))
+                  (commons/graph-name graph)]]))])]))))
 
 (defn project []
   (let [project @*selected-project

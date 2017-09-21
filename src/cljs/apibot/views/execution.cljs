@@ -8,16 +8,22 @@
     [apibot.router :as router]
     [apibot.views.commons :as commons]
     [apibot.views.tree :as tree]
-    [clojure.string :refer [starts-with?]]
+    [clojure.string :refer [starts-with? join]]
     [reagent.core :refer [atom cursor]]
     [apibot.api :as api]
-    [promesa.core :as p]))
+    [promesa.core :as p]
+    [apibot.nodes :as nodes]))
 
 ;; ---- Model ----
 
 (defn exclude-apibot-keys
   [scope]
   (coll/dissoc-if (fn [[k _]] (starts-with? (name k) "apibot|")) scope))
+
+(defn conditional-classes [m]
+  (->> (filter (fn [[css-class bool]] bool) m)
+       (map (fn [[css-class bool]] css-class))
+       (join " ")))
 
 ;; ---- Views ----
 
@@ -60,22 +66,60 @@
         [:h4 "Http Error"]
         [tree/tree error]])]))
 
+
+(defn execution-step-preview-http-request
+  [node scope selected? select!]
+  (let [{:keys [http-method url]} (:props node)
+        {:keys [status]} (:apibot|http-response scope)]
+    [:button.list-group-item
+     {:on-click select!
+      :class    (conditional-classes
+                  {"active" selected?})}
+     [:span
+      [:b http-method " "]
+      (nodes/path-preview url) " : "
+      [:span.label
+       {:class (cond
+                 (coll/in-range? status 200 300) "label-success"
+                 (coll/in-range? status 300 400) "label-info"
+                 (coll/in-range? status 400 500) "label-warning"
+                 :else "label-danger")}
+       status]]]))
+
+(defn execution-step-preview-assertion [node scope selected? select!]
+  (let [failed? (contains? scope :apibot|assertion-failed)]
+    [:button.list-group-item
+     {:on-click select!
+      :class    (conditional-classes
+                  {"active"                  selected?
+                   "list-group-item-danger"  failed?
+                   "list-group-item-success" (not failed?)})}
+     [:span [:b (if failed? "FAILED: " "PASSED: ")]
+            (:name node)]]))
+
+(defn execution-step-preview-default
+  [node scope selected? select!]
+  [:button.list-group-item
+   {:on-click select!
+    :class    (conditional-classes
+                {"active" selected?})}
+   [:span (:name node)]])
+
 (defn list-group-item
   [step *selected-step]
-  (let [{:keys [node start-time end-time]} step
-        millis (- end-time start-time)]
-    [:button.list-group-item
-     {:type     "button"
-      :class    (str (if (= (:id @*selected-step)
-                            (:id step))
-                       "active"
-                       "")
-                     (if (:apibot|error (:scope step))
-                       " list-group-item-danger"
-                       ""))
-      :on-click (fn [e] (reset! *selected-step step))}
-     [:p (:name node)
-      [:span.label.label-info.pull-right (str (int millis) "ms")]]]))
+  (let [{:keys [node scope]} step
+        type (:type node)
+        selected? (= (:id @*selected-step) (:id step))
+        select! #(reset! *selected-step step)]
+    (cond
+      (#{"assert-body" "assert-headers" "assert-status"} type)
+      [execution-step-preview-assertion node scope selected? select!]
+
+      (= "http-request" type)
+      [execution-step-preview-http-request node scope selected? select!]
+
+      :else
+      [execution-step-preview-default node scope selected? select!])))
 
 (defn view-load-execution [execution-id *app-state]
   (let [*execution (commons/find-as-cursor *app-state [:execution-history] #(= (:id %) execution-id))
@@ -87,8 +131,8 @@
                 (swap! *executions conj result))))
     [:div
      {:style {:text-align "center"
-              :max-width "300px"
-              :margin "5% auto"}}
+              :max-width  "300px"
+              :margin     "5% auto"}}
      [:h4 "Loading, please wait"]
      [:div.progress
       [:div.progress-bar.progress-bar-striped.active
@@ -121,6 +165,7 @@
        [:div.row
         [:div.col-md-4
          [:div.list-group
+          {:style {:font-family "monospace"}}
           (-> (for [step execution-steps]
                 #^{:key (:id step)}
                 [list-group-item step *selected-step])

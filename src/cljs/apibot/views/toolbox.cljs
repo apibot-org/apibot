@@ -11,7 +11,8 @@
     [apibot.util :as util]
     [apibot.views.commons :refer [publish glyphicon-run]]
     [promesa.core :as p]
-    [reagent.core :refer [atom cursor]]))
+    [reagent.core :refer [atom cursor]]
+    [apibot.views.dialogs :as dialogs]))
 
 (defn button-add-new-graph [*graphs text]
   ; The New Graph Button
@@ -24,6 +25,34 @@
    [:span.glyphicon.glyphicon-plus {:aria-hidden "true"}]
    (str " " text)])
 
+(defn execute-graph [*running *selected-graph]
+  (let [selected-graph @*selected-graph
+        dag? (graphs/dag? selected-graph)]
+    (cond
+      (and (not (:executable selected-graph)) dag?)
+      (dialogs/show!
+        (dialogs/dialog-are-you-sure?
+          "Make graph executable?"
+          "Are you sure you want to execute this graph? Graphs are not executable by default but by accepting this dialog you will make it executable."
+          (fn []
+            (coll/swapr! *selected-graph graphs/with-executable true)
+            (execute-graph *running *selected-graph))))
+
+      (and (not dag?))
+      (dialogs/show!
+        (dialogs/message-dialog
+          "Unable to Execute"
+          "The current graph cannot be executed because it either has loops or disconnected components."))
+
+      :else
+      (let [_ (reset! *running true)
+            promise (grexec/execute! @*graphs selected-graph)]
+        (util/bind-promise!
+          (cursor *executions [(:id selected-graph)])
+          promise)
+        (p/finally promise #(reset! *running false))))))
+
+
 (defn toolbox
   []
   (let [*running (atom false)]
@@ -33,18 +62,11 @@
          {:style {:margin "2px"}}
          ; The Execute Graph Button
          [:button.btn.btn-default
-          {:on-click
-                     (trackfn :ev-toolbox-run-graph
-                       (fn [e]
-                         (reset! *running true)
-                         (let [promise (grexec/execute! @*graphs selected-graph)]
-                           (util/bind-promise!
-                             (cursor *executions [(:id selected-graph)])
-                             promise)
-                           (p/finally promise #(reset! *running false)))))
+          {:on-click (trackfn :ev-toolbox-run-graph
+                              (fn [e] (execute-graph *running *selected-graph)))
+
 
            :disabled (or (nil? selected-graph)
-                         (not (graphs/executable? selected-graph))
                          @*running)}
           [glyphicon-run]
           (if @*running
