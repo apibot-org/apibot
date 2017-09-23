@@ -3,6 +3,7 @@
     #?(:cljs [cljs.spec.alpha :as s] :clj [clojure.spec.alpha :as s])
     [apibot.el :as el]
     [apibot.graphs :refer [map->NativeGraph]]
+    [apibot.grexec.executors :as executors]
     [apibot.grexec.eval :as eval]
     [promesa.core :as p]
     [clojure.string :as string]))
@@ -45,6 +46,6 @@
     {:id       "assert"
      :name     "Assert"
      :desc     "Performs an assertion"
-     :execfunc execute
+     :execfunc (executors/wrap-with-try-catch execute executors/on-js-error)
      :default-props {:fn doctext}
      :spec     nil}))

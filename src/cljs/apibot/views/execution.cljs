@@ -74,7 +74,8 @@
     [:button.list-group-item
      {:on-click select!
       :class    (conditional-classes
-                  {"active" selected?})}
+                  {"active" selected?
+                   "list-group-item-danger" (contains? scope :apibot|error)})}
      [:span
       [:b http-method " "]
       (nodes/path-preview url) " : "
@@ -87,7 +88,7 @@
        status]]]))
 
 (defn execution-step-preview-assertion [node scope selected? select!]
-  (let [failed? (contains? scope :apibot|assertion-failed)]
+  (let [failed? (contains? scope :apibot|error)]
     [:button.list-group-item
      {:on-click select!
       :class    (conditional-classes
@@ -102,7 +103,8 @@
   [:button.list-group-item
    {:on-click select!
     :class    (conditional-classes
-                {"active" selected?})}
+                {"active" selected?
+                 "list-group-item-danger" (contains? scope :apibot|error)})}
    [:span (:name node)]])
 
 (defn list-group-item

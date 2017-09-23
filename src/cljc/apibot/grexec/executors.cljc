@@ -12,7 +12,13 @@
             "\"'s JavaScript function."))))
   ([node scope error]
    ;; XXX The error is currently unused but it might come in handy one day hmmm.
-   (on-js-error node scope)))
+   (if (and (.-name error) (.-message error))
+     (p/promise
+       (assoc scope
+         :apibot|error true
+         :apibot|js-error (str (.-name error) " " (.-message error))))
+     (on-js-error node scope))))
+
 
 (defn wrap-with-try-catch
   [executor on-error]

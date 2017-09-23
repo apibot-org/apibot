@@ -33,8 +33,8 @@
       (fn [& args]
         (lambda-invoke js-code args))
      :cljs
-      (let [fun (js/eval js-code)]
-        (fn [& args]
+      (fn [& args]
+        (let [fun (js/eval js-code)]
           (let [js-args (map clj->js args)]
             (-> (apply fun js-args)
                 (js->clj :keywordize-keys true)))))))
