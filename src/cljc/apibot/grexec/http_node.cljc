@@ -78,7 +78,7 @@
      :desc     "Makes an HTTP Request"
      :execfunc execute
      :default-props {:http-method "GET"
-                     :headers []
+                     :url ""
                      :query-params []}
      :spec     nil}))
 

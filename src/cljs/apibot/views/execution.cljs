@@ -112,7 +112,7 @@
         selected? (= (:id @*selected-step) (:id step))
         select! #(reset! *selected-step step)]
     (cond
-      (#{"assert-body" "assert-headers" "assert-status"} type)
+      (#{"assert" "assert-body" "assert-headers" "assert-status"} type)
       [execution-step-preview-assertion node scope selected? select!]
 
       (= "http-request" type)

@@ -43,6 +43,19 @@
   (let [edge (-> e .-target)]
     (cyto-edge->edge edge)))
 
+(defn find-selected-nodes [cy]
+  (if-not cy
+    []
+    (-> (.nodes cy ":selected")
+        (.map #(cyto-node->node %))
+        (vec))))
+
+(defn find-selected-edges [cy]
+  (if-not cy
+    []
+    (-> (.edges cy ":selected")
+        (.map #(cyto-edge->edge %))
+        (vec))))
 
 (defn send-graph-updates [cy **selected-graph]
   (let [elements (-> (.json @cy)
@@ -52,25 +65,27 @@
 
 ;; ---- Views ----
 
-(defn menu-node [*cy *state]
-  (let [{:keys [selected-node]} @*state
+(defn menu-node [*cy selected-nodes *state]
+  (let [selected-node (first selected-nodes)
         *show-menu (reagent/cursor *state [:show-menu])]
-    (when (and selected-node (= 1 (count @*selected-node-ids)))
+    (when (and selected-node (= 1 (count selected-nodes)))
       (let [{:keys [renderedPosition width height id]} selected-node
             {:keys [x y]} renderedPosition]
         [:button.btn.btn-link
          {:style          {:left      (+ x (/ width 2))
                            :top       (- y (/ height 2) 30)
-                           :padding   0
+                           :padding   "0 12px"
                            :margin    0
                            :font-size "25px"
                            :position  "absolute"
                            :z-index   1000000}
-          :on-mouse-enter #(reset! *show-menu true)}
+          :on-mouse-enter #(reset! *show-menu (:id selected-node))
+          :on-mouse-leave #(reset! *show-menu nil)}
          [:span.glyphicon.glyphicon-plus-sign]
          [:ul.dropdown-menu
-          {:style          {:display (if @*show-menu "block" "none")}
-           :on-mouse-leave #(reset! *show-menu false)}
+          {:style          {:display (if (= (:id selected-node) @*show-menu)
+                                       "block" "none")
+                            :margin-top "-2px"}}
           [:li>a
            {:on-click #(.edgehandles @*cy "start" id)}
            [:span.glyphicon.glyphicon-share-alt]
@@ -88,8 +103,8 @@
            [:span.glyphicon.glyphicon-scissors]
            " Disconnect"]]]))))
 
-(defn menu-edge [*cy *state]
-  (let [{:keys [selected-edge]} @*state]
+(defn menu-edge [*cy selected-edges *state]
+  (let [selected-edge (first selected-edges)]
     (when selected-edge
       (let [{:keys [renderedPosition width height id]} selected-edge
             {:keys [x y]} renderedPosition]
@@ -251,42 +266,17 @@
 
     (.on cyto "select" "node"
          (fn [e]
-           (let [node-id (event->id e)
-                 node (event->node e)]
-             (reagent/set-state this {:selected-node node})
+           (let [node-id (event->id e)]
              (swap! *selected-node-ids conj node-id))))
-
-    (.on cyto "select" "edge"
-         (fn [e]
-           (let [edge (event->edge e)]
-             (reagent/set-state this {:selected-edge edge}))))
 
     (.on cyto "render"
          (fn [e]
-           (when-let [selected-node-id (state-at this [:selected-node :id])]
-             (when-let [node (.$ cyto (str "#" selected-node-id))]
-               (reagent/set-state this {:selected-node (cyto-node->node node)})))
-
-           (when-let [selected-edge-id (state-at this [:selected-edge :id])]
-             (when-let [edge (.$ cyto (str "#" selected-edge-id))]
-               (reagent/set-state this {:selected-edge (cyto-edge->edge edge)})))))
-
-    (.on cyto "select" "edge"
-         (fn [e]
-           (reset! *selected-node-ids #{})))
+           (reagent/force-update this true)))
 
     (.on cyto "unselect" "node"
          (fn [e]
            (let [node-id (event->id e)]
-             (when (= node-id (state-at this [:selected-node :id]))
-               (reagent/set-state this {:selected-node nil :show-menu false}))
              (swap! *selected-node-ids disj node-id))))
-
-    (.on cyto "unselect" "edge"
-         (fn [e]
-           (let [edge-id (event->id e)]
-             (when (= edge-id (state-at this [:selected-edge :id]))
-               (reagent/set-state this {:selected-edge nil})))))
 
     ;; Whenever a node is "freed" i.e. after dragging, update the position
     (.on cyto "free" "node"
@@ -353,8 +343,8 @@
          (let [*state (reagent/state-atom (reagent/current-component))]
            [:div
             {:id id :style {:width "100%" :height "100%"}}
-            (menu-edge cy *state)
-            (menu-node cy *state)]))})))
+            (menu-edge cy (find-selected-edges @cy) *state)
+            (menu-node cy (find-selected-nodes @cy) *state)]))})))
 
 (defn create-readonly-paper-class [id & {:keys [layout]}]
   (let [;; ---- State ----

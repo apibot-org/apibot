@@ -1,6 +1,6 @@
 (ns apibot.nodes
   (:require
-    [clojure.string :refer [split join starts-with? replace-first]]
+    [clojure.string :as str :refer [split join starts-with? replace-first]]
     [apibot.coll :as coll]))
 
 
@@ -17,7 +17,7 @@
   [string]
   (let [prev (->> (split string #"/")
                   (filter (complement #{"" "/" "http:" "https:"}))
-                  (filter #(not (re-find #"\$\{\w+\}" %)))
+                  (filter #(not (re-find #"\$\{.*?\}" %)))
                   (reverse)
                   (coll/subcoll 3)
                   (reverse)
