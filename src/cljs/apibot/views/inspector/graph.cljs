@@ -25,7 +25,7 @@
            [:a {:role "button" :on-click (fn [e]
                                            (dialogs/hide!)
                                            (router/goto-editor (:id g)))}
-            (commons/graph-name graph)]]))]
+            (commons/graph-name g)]]))]
      [:p "Please remove all usages to continue."]]))
 
 (defn dialog-confirm-deletion
