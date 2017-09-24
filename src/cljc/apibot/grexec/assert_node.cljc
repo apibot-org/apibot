@@ -1,26 +1,27 @@
 (ns apibot.grexec.assert-node
   (:require
-    #?(:cljs [cljs.spec.alpha :as s] :clj [clojure.spec.alpha :as s])
+    [#?(:cljs cljs.spec.alpha :clj clojure.spec.alpha) :as s]
     [apibot.el :as el]
     [apibot.graphs :refer [map->NativeGraph]]
-    [apibot.grexec.executors :as executors]
+    [apibot.grexec.assertions :as assertions]
     [apibot.grexec.eval :as eval]
-    [promesa.core :as p]
-    [clojure.string :as string]))
+    [apibot.grexec.executors :as executors]
+    [clojure.string :as string]
+    [promesa.core :as p]))
 
 (def doctext
   (string/join "\n"
-    ["/**"
-     " * An assert function takes the scope as input"
-     " * and returns a boolean value indicating if"
-     " * the assertion passed or not."
-     " * "
-     " * @return [boolean] true if the assertion passed, false otherwise."
-     " */"
-     "(scope) => {"
-     "  // Replace this with your own assertion logic."
-     "  return scope.user !== null;"
-     "}"]))
+               ["/**"
+                " * An assert function takes the scope as input"
+                " * and returns a boolean value indicating if"
+                " * the assertion passed or not."
+                " * "
+                " * @return [boolean] true if the assertion passed, false otherwise."
+                " */"
+                "(scope) => {"
+                "  // Replace this with your own assertion logic."
+                "  return scope.user !== null;"
+                "}"]))
 
 ;; ---- Specs ----
 
@@ -43,9 +44,9 @@
 
 (def graph
   (map->NativeGraph
-    {:id       "assert"
-     :name     "Assert"
-     :desc     "Performs an assertion"
-     :execfunc (executors/wrap-with-try-catch execute executors/on-js-error)
+    {:id            "assert"
+     :name          "Assert"
+     :desc          "Performs an assertion"
+     :execfunc      (executors/wrap-with-try-catch execute executors/on-js-error)
      :default-props {:fn doctext}
-     :spec     nil}))
+     :spec          nil}))

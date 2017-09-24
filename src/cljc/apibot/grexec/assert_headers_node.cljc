@@ -1,11 +1,12 @@
 (ns apibot.grexec.assert-headers-node
   "Performs an assertion over the last request's header."
   (:require
-    #?(:cljs [cljs.spec.alpha :as s] :clj [clojure.spec.alpha :as s])
+    [#?(:cljs cljs.spec.alpha :clj clojure.spec.alpha) :as s]
     [apibot.el :as el]
     [apibot.graphs :refer [map->NativeGraph]]
     [apibot.grexec.assertions :as assertions]
     [apibot.grexec.eval :as eval]
+    [apibot.grexec.executors :as executors]
     [clojure.string :as string]))
 
 (def doctext
@@ -36,9 +37,9 @@
 
 (def graph
   (map->NativeGraph
-    {:id       "assert-headers"
-     :name     "Assert Headers"
-     :desc     "Performs an assertion over the last request's headers."
-     :execfunc (assertions/assert-over-http-response :headers)
+    {:id            "assert-headers"
+     :name          "Assert Headers"
+     :desc          "Performs an assertion over the last request's headers."
+     :execfunc      (executors/wrap-with-try-catch (assertions/assert-over-http-response :headers) executors/on-js-error)
      :default-props {:fn doctext}
-     :spec     nil}))
+     :spec          nil}))

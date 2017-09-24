@@ -1,11 +1,12 @@
 (ns apibot.grexec.extract-body-node
   "Equivalent to eval-node but uses JavaScript instead of ClojureScript."
   (:require
-    #?(:cljs [cljs.spec.alpha :as s] :clj [clojure.spec.alpha :as s])
+    [#?(:cljs cljs.spec.alpha :clj clojure.spec.alpha) :as s]
     [apibot.graphs :refer [map->NativeGraph]]
     [apibot.grexec.eval :as eval]
-    [promesa.core :as p]
-    [clojure.string :as string]))
+    [apibot.grexec.executors :as executors]
+    [clojure.string :as string]
+    [promesa.core :as p]))
 
 (def doctext
   (string/join "\n"
@@ -41,9 +42,9 @@
 
 (def graph
   (map->NativeGraph
-    {:id       "extract-body"
-     :name     "Extract Body"
-     :desc     "Extracts the value with the given path"
-     :execfunc execute
+    {:id            "extract-body"
+     :name          "Extract Body"
+     :desc          "Extracts the value with the given path"
+     :execfunc      (executors/wrap-with-try-catch execute executors/on-js-error)
      :default-props {:fn doctext}
-     :spec     nil}))
+     :spec          nil}))
