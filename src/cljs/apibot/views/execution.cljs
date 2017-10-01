@@ -1,29 +1,24 @@
 (ns apibot.views.execution
   "A view that displays the result of a single step of execution."
   (:require
+    [apibot.api :as api]
+    [apibot.coll :as coll]
     [apibot.exec-history :as exec-history]
     [apibot.graphs :as graphs]
-    [apibot.util :as util]
-    [apibot.coll :as coll]
+    [apibot.nodes :as nodes]
     [apibot.router :as router]
-    [apibot.views.commons :as commons]
+    [apibot.util :as util]
+    [apibot.views.commons :as commons :refer [conditional-classes]]
     [apibot.views.tree :as tree]
     [clojure.string :refer [starts-with? join]]
-    [reagent.core :refer [atom cursor]]
-    [apibot.api :as api]
     [promesa.core :as p]
-    [apibot.nodes :as nodes]))
+    [reagent.core :refer [atom cursor]]))
 
 ;; ---- Model ----
 
 (defn exclude-apibot-keys
   [scope]
   (coll/dissoc-if (fn [[k _]] (starts-with? (name k) "apibot|")) scope))
-
-(defn conditional-classes [m]
-  (->> (filter (fn [[css-class bool]] bool) m)
-       (map (fn [[css-class bool]] css-class))
-       (join " ")))
 
 ;; ---- Views ----
 
@@ -74,17 +69,12 @@
     [:button.list-group-item
      {:on-click select!
       :class    (conditional-classes
-                  {"active" selected?
+                  {"active"                 selected?
                    "list-group-item-danger" (contains? scope :apibot|error)})}
      [:span
       [:b http-method " "]
       (nodes/path-preview url) " : "
-      [:span.label
-       {:class (cond
-                 (coll/in-range? status 200 300) "label-success"
-                 (coll/in-range? status 300 400) "label-info"
-                 (coll/in-range? status 400 500) "label-warning"
-                 :else "label-danger")}
+      [:span.label {:class (commons/http-status->label status)}
        status]]]))
 
 (defn execution-step-preview-assertion [node scope selected? select!]
@@ -96,14 +86,14 @@
                    "list-group-item-danger"  failed?
                    "list-group-item-success" (not failed?)})}
      [:span [:b (if failed? "FAILED: " "PASSED: ")]
-            (:name node)]]))
+      (:name node)]]))
 
 (defn execution-step-preview-default
   [node scope selected? select!]
   [:button.list-group-item
    {:on-click select!
     :class    (conditional-classes
-                {"active" selected?
+                {"active"                 selected?
                  "list-group-item-danger" (contains? scope :apibot|error)})}
    [:span (:name node)]])
 

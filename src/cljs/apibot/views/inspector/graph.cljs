@@ -83,17 +83,4 @@
                    (dialog-confirm-deletion graph)
                    (dialog-show-usages graph usages)))))}
     [:span.glyphicon.glyphicon-trash]
-    " Delete Graph"]
-
-   (when (not (graphs/loopless? @*graph))
-     [commons/warning-sign
-      "Loop found: "
-      "Graphs with loops cannot be executed."])
-   (when (> (count (graphs/connected-components @*graph)) 1)
-     [commons/warning-sign
-      "Disconnected nodes found: "
-      "Graphs with disconnected subgraphs cannot be executed."])
-   (when (= (graphs/count-nodes @*graph) 0)
-     [commons/warning-sign
-      "Empty graph: "
-      "Empty graphs cannot be executed. Make sure your graph has at least one node."])])
+    " Delete Graph"]])

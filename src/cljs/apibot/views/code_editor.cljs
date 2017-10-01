@@ -43,8 +43,9 @@
          (let [editor (.edit js/ace (:id opts))
                lang (find-language (:language editor-opts))]
            (-> editor (.setTheme "ace/theme/chrome"))
-           (-> editor (.setOptions #js {:maxLines                 20
-                                        :minLines                 3
+           (-> editor (.setOptions #js {:maxLines                 (get editor-opts :max-lines 20)
+                                        :minLines                 (get editor-opts :min-lines 3)
+                                        :readOnly                 (get editor-opts :read-only false)
                                         :autoScrollEditorIntoView true}))
            (-> editor .getSession (.setMode lang))
            (-> editor .getSession (.setTabSize 2))

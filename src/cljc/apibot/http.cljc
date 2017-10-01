@@ -20,6 +20,13 @@
        (map (fn [[_ header-val]] header-val))
        (first)))
 
+(defn json-content-type?
+  "True if the response contains an application/json content-type"
+  [response]
+  (if-let [content-type (find-header :content-type response)]
+    (includes? content-type "application/json")
+    false))
+
 (defn- parse-body-as-json
   [response]
   (update response :body json/from-json))

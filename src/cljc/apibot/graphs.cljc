@@ -287,24 +287,6 @@
                    (into visited-nodes subgraph)
                    tail)))))))
 
-(defn loopless?
-  "Returns true iff the graph contains no loops"
-  ([graph]
-   (every? #(loopless? % graph) (:nodes graph)))
-  ([starting-node graph]
-   (loop [visited #{starting-node}
-          next-nodes (successors starting-node graph)]
-     (if (empty? next-nodes)
-       true
-       (let [head (first next-nodes)
-             tail (rest next-nodes)]
-         (if (= starting-node head)
-           false
-           (if (visited head)
-             (recur visited tail)
-             (recur (conj visited head)
-                    (into tail (successors head graph))))))))))
-
 
 (defn empty-graph
   "Creates a new empty graph."
@@ -330,10 +312,19 @@
   (graph->node skippable-graph))
 
 
-(defn dag? [graph]
-  (and (= 1 (count (connected-components graph)))
-       (loopless? graph)))
-
+(defn dag?
+  "Returns true if graph is a DAG, false otherwise."
+  [graph]
+  (let [start-nodes (find-start-nodes graph)]
+    (if (not= (count start-nodes) 1)
+      false
+      (let [iter (fn iter [node path]
+                  (if (contains? path (:id node))
+                   false
+                   (->> (successors node graph)
+                        (map #(iter % (conj path node)))
+                        (every? true?))))]
+        (iter (first start-nodes) #{})))))
 
 (defn executable?
   "Determines if the given graph is in an executable state."

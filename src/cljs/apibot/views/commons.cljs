@@ -5,7 +5,8 @@
     [apibot.coll :as coll]
     [reagent.core :as reagent :refer [atom cursor]]
     [promesa.core :as p]
-    [apibot.graphs :as graphs]))
+    [apibot.graphs :as graphs]
+    [clojure.string :as str]))
 
 (defn warning-sign [title message]
   [:p.alert.alert-warning
@@ -14,6 +15,19 @@
    [:span.glyphicon.glyphicon-exclamation-sign]
    [:b " " title]
    message])
+
+(defn conditional-classes [m]
+  (->> (filter (fn [[css-class bool]] bool) m)
+       (map (fn [[css-class bool]] css-class))
+       (str/join " ")))
+
+(defn http-status->label [status]
+  (cond
+    (coll/in-range? status 100 200) "label-default"
+    (coll/in-range? status 200 300) "label-success"
+    (coll/in-range? status 300 400) "label-info"
+    (coll/in-range? status 400 500) "label-warning"
+    :else "label-danger"))
 
 (defn graph-name
   "A simple helper method for displaying a graph's name and defaulting to 'no name' in case

@@ -183,5 +183,6 @@
 
 (defn execute!
   [graphs graph]
+  (assert (graphs/dag? graph) "Can only execute DAGs")
   (let [execution-count (csv-node/find-execution-count graph)]
     (linked-execution-chains 0 execution-count graphs graph)))
