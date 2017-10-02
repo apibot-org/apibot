@@ -57,3 +57,14 @@ button:focus {
   -o-animation: rotating 2s linear infinite;
   animation: rotating 2s linear infinite;
 }
+
+footer ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.vcenter {
+    display: inline-block;
+    vertical-align: middle;
+    float: none;
+}

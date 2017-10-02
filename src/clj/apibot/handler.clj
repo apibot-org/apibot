@@ -7,6 +7,7 @@
     [apibot.routes.graphs :refer [api-graphs]]
     [apibot.routes.projects :refer [api-projects]]
     [apibot.routes.users :refer [api-users]]
+    [apibot.views.landing-page :as landing-page]
     [compojure.core :refer [routes wrap-routes defroutes GET]]
     [compojure.route :as route]
     [mount.core :as mount]))
@@ -17,7 +18,10 @@
 
 (defroutes home-routes
   (GET "/" []
-    (slurp (clojure.java.io/resource "public/index.html"))))
+    (slurp (clojure.java.io/resource "public/index.html")))
+  (GET "/lp" [] landing-page/landing-page)
+  (GET "/lp/easy-as-drag-n-drop" [] landing-page/page-easy-as-drag-n-drop))
+
 
 (def app-routes
   (routes
