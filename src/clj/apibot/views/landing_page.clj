@@ -1,25 +1,12 @@
 (ns apibot.views.landing-page
   (:require
-    [hiccup.page :refer [html5 include-css]]))
-
-
-(def common-head
-  [:head
-   (include-css "/css/bootstrap.3.3.7.min.css"
-                "/css/main.css")])
-
-
-(def common-navbar
-  [:nav.navbar.navbar-static-top.navbar-inverse
-   [:div.container
-    [:a.navbar-brand {:href "#"} "Apibot"]
-    [:ul.nav.navbar-nav.navbar-left
-     [:li [:a {:href "#"} "Documentation"]]
-     [:li [:a {:href "#"} "Sign in"]]]]])
+    [hiccup.page :refer [html5 include-css]]
+    [apibot.views.pages.common :as common :refer [common-head common-navbar]]))
 
 
 (defn section
-  [title message image learn-more-link]
+ ([title message image] (section title message image nil))
+ ([title message image learn-more-link]
   [:div.row
    {:style "display: flex; align-items: center; padding-top: 40px; padding-bottom: 40px;"}
    [:div.col-md-6
@@ -32,25 +19,19 @@
       message]]
     [:p
      [:br] [:br]
-     [:a.btn.btn-success.btn-lg
-      {:role "button"}
-      "Signup now"]
-     " or "
-     [:a.btn.btn-info.btn-lg
-      {:role "button"
-       :href learn-more-link}
-      "learn more"]]]
+     (common/btn-signup
+       "Signup now")
+     (when learn-more-link
+       " or ")
+     (when learn-more-link
+       [:a.btn.btn-info.btn-lg
+        {:role "button"
+         :href learn-more-link}
+        "learn more"])]]
    [:div.col-md-6
     {:style "text-align: center; "}
     [:img {:src   image
-           :style "height: 350px;"}]]])
-
-
-(def page-easy-as-drag-n-drop
-  (html5
-    common-head
-    [:body
-     common-navbar]))
+           :style "height: 350px;"}]]]))
 
 
 (def landing-page
@@ -64,41 +45,27 @@
       [:p
        {:style "font-size: 18px;"}
        "Apibot makes testing your API as easy as drag-n-drop. "]
-      [:button.btn.btn-success.btn-lg
-       "Sign up free"]]
+      (common/btn-signup
+        "Sign up free")]
 
      [:div.container
 
       (section
         "As easy as drag-n-drop"
-        "Apibot's visual test editor makes it easy for both technical and non technical members of your team to write complex integration tests. "
+        "Apibot's visual test editor makes it easy for both technical and non technical members of your team to write complex integration tests.
+        All you need is some basic knowledge of HTTP to get started."
         "/img/landing/as-easy-as-drag-n-drop.png"
-        "/lp/easy-as-drag-n-drop")
+        "/easy-as-drag-n-drop")
 
       (section
         "Detailed Bug Reports"
         "Stop wasting time trying to find out what happened. Apibot's bug reports tell you exactly what happened and which steps were taken to reproduce a bug."
-        "/img/landing/easy-debugging.png"
-        "/lp/detailed-bug-reports")
+        "/img/landing/easy-debugging.png")
 
       (section
         "Built for teams"
         "Apibot is built with multi-disciplinary teams in mind. Producing high quality software is hard, Apibot gives everyone in your team the tools to make it happen."
-        "/img/landing/built-for-teams.png"
-        "/lp/built-for-teams")]
+        "/img/landing/built-for-teams.png")]
 
-     [:footer
-      {:style "background-color: #222; color: white; padding-top: 26px; margin-top: 26px;"}
-      [:div.container
-       [:div.row
-        [:div.col-xs-4
-         [:p "Apibot"]
-         [:ul
-          [:li [:a {:href "/docs"} "Documentation"]]
-          [:li [:a {:href "https://medium.com/@The_Real_Apibot"} "Blog"]]
-          [:li [:a {:href "https://github.com/apibot-org"} "Github"]]
-          [:li [:a {:href "mailto:support@apibot.co"} "Support"]]
-          [:li [:a {:href "/terms.html"} "Terms of Service"]]]]]
-       [:div.row
-        [:p "© 2017 Apibot, All rights reserved"]]]]]))
+     common/footer]))
 
