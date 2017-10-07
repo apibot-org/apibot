@@ -5,10 +5,11 @@
 
 (def common-head
   [:head
+   [:title "Apibot | write integration tests as easy as drag n drop"]
    (include-css "/css/bootstrap.3.3.7.min.css"
                 "/css/main.css")
    (include-js "https://cdn.auth0.com/js/auth0/8.8/auth0.min.js")
-   (include-js "js/auth0.js")])
+   (include-js "/js/auth0.js")])
 
 (def common-navbar
   [:nav.navbar.navbar-static-top.navbar-inverse
