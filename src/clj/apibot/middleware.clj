@@ -12,7 +12,8 @@
     [ring.middleware.defaults :refer [site-defaults wrap-defaults]]
     [ring.middleware.flash :refer [wrap-flash]]
     [ring.middleware.gzip :refer [wrap-gzip]]
-    [ring.middleware.webjars :refer [wrap-webjars]])
+    [ring.middleware.webjars :refer [wrap-webjars]]
+    [ring.middleware.ssl :as ring-ssl])
   (:import [javax.servlet ServletContext]
            (com.auth0.jwt JWTVerifier)
            (com.auth0.jwt.exceptions JWTVerificationException JWTDecodeException SignatureVerificationException TokenExpiredException InvalidClaimException)
@@ -92,8 +93,17 @@
                               :message "The provided token could not be verified"}))))
         (handler request)))))
 
+(defn enforce-ssl [handler]
+  (if (or (env :dev) (env :test))
+    handler
+    (-> handler
+        ring-ssl/wrap-hsts
+        ring-ssl/wrap-ssl-redirect
+        ring-ssl/wrap-forwarded-scheme)))
+
 (defn wrap-base [handler]
   (-> ((:middleware defaults) handler)
+      enforce-ssl
       wrap-jwt
       wrap-formats
       wrap-webjars

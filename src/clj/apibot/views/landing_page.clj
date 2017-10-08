@@ -20,7 +20,7 @@
     [:p
      [:br] [:br]
      (common/btn-signup
-       "Signup now")
+       "Sign up free")
      (when learn-more-link
        " or ")
      (when learn-more-link

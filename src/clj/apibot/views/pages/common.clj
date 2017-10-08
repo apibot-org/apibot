@@ -1,7 +1,6 @@
 (ns apibot.views.pages.common
   (:require
-    [hiccup.page :refer [html5 include-css include-js]]
-    [apibot.env :as env]))
+    [hiccup.page :refer [html5 include-css include-js]]))
 
 (def common-head
   [:head

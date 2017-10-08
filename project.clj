@@ -42,6 +42,7 @@
    [ring-webjars "0.2.0"]
    [ring/ring-core "1.6.1"]
    [ring/ring-defaults "0.3.0"]
+   [ring/ring-ssl "0.3.0"]
    [secretary "1.2.3"]
    [selmer "1.10.7"]]
 
