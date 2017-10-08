@@ -1,7 +1,8 @@
 (ns apibot.views.pages.common
   (:require
     [hiccup.page :refer [html5 include-css include-js]]
-    [apibot.config :as config]))
+    [apibot.config :as config]
+    [apibot.coll :as coll]))
 
 
 (def common-head
@@ -11,23 +12,23 @@
                 "/css/main.css")
    (include-js "https://cdn.auth0.com/js/auth0/8.8/auth0.min.js")
    (include-js "/js/auth0.js")
-   (when (not (config/dev?))
-     [:script
-      {:async ""
-       :src   "https://www.googletagmanager.com/gtag/js?id=UA-100119885-1"}])
-   (when (not (config/dev?))
-     [:script
-      "window.dataLayer = window.dataLayer || [];
+   [:script
+    {:async ""
+     :src   "https://www.googletagmanager.com/gtag/js?id=UA-100119885-1"}]
+   [:script
+    "if (/apibot/.test(document.domain)) {
+      window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);};
       gtag('js', new Date());
-      gtag('config', 'UA-100119885-1');"])])
+      gtag('config', 'UA-100119885-1');
+    }"]])
 
 (def common-navbar
   [:nav.navbar.navbar-static-top.navbar-inverse
    [:div.container
     [:a.navbar-brand {:href "/"} "Apibot"]
     [:ul.nav.navbar-nav.navbar-left
-     [:li [:a {:href "/docs"} "Documentation"]]
+     [:li [:a {:href (coll/docs-at)} "Documentation"]]
      [:li [:a {:onclick "apibot_signup()" :role "button"} "Sign in"]]]]])
 
 (defn btn-signup [text]
@@ -44,7 +45,7 @@
      [:div.col-xs-4
       [:p "Apibot"]
       [:ul
-       [:li [:a {:href "/docs"} "Documentation"]]
+       [:li [:a {:href (coll/docs-at)} "Documentation"]]
        [:li [:a {:href "https://medium.com/@The_Real_Apibot"} "Blog"]]
        [:li [:a {:href "https://github.com/apibot-org"} "Github"]]
        [:li [:a {:href "mailto:support@apibot.co"} "Support"]]

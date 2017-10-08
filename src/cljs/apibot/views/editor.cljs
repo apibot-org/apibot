@@ -9,7 +9,8 @@
     [apibot.views.paper :as paper]
     [apibot.views.stencil :as stencil]
     [apibot.views.toolbox :as toolbox]
-    [reagent.core :as reagent :refer [atom cursor]]))
+    [reagent.core :as reagent :refer [atom cursor]]
+    [apibot.coll :as coll]))
 
 ;; ---- Model ----
 
@@ -57,7 +58,7 @@
           {:style {:text-align "center"}}
           [:h2 "Welcome to Apibot"]
           [:p "Check our getting started tutorial, browser the "
-           [:a {:href "http://apibot.co/docs/" :target "_blank"} "documentation "]
+           [:a {:href (coll/docs-at) :target "_blank"} "documentation "]
            "or"]
           [:p
            [toolbox/button-add-new-graph *graphs "Create a New Graph"]]

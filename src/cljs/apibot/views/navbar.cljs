@@ -134,7 +134,7 @@
       [:ul.nav.navbar-nav.navbar-right
        [:li
         [:a
-         {:href   "http://apibot.co/docs"
+         {:href  (coll/docs-at)
           :target "_blank"}
          [:span.glyphicon.glyphicon-education] " Docs"]]
 

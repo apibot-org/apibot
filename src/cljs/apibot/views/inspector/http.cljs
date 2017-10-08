@@ -99,7 +99,11 @@
            [:b "Parsing Error: "]
            "Unable to parse the provided Swagger JSON, please make sure you are providing JSON."]
           [:p.help-block "Copy and paste the complete swagger .json in the text box above or "
-           [:a {:href "http://apibot.co/docs/tutorials/swagger-import" :target "_blank"} "click here for help"] "."])]
+           [:a
+            {:href (coll/docs-at "tutorials/swagger-import")
+             :target "_blank"}
+            "click here for help"]
+           "."])]
        [:div
         [:button.btn.btn-secondary
          {:type "button" :on-click #(dialogs/hide!)}

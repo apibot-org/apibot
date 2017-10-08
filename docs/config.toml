@@ -1,4 +1,4 @@
-baseURL = "http://apibot.co/docs/"
+baseURL = "https://apibot-org.github.io/docs/"
 languageCode = "en-us"
 title = "Apibot | Write integration tests for your API"
 theme = "docdock"

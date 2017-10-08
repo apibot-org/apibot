@@ -97,7 +97,7 @@
         [:a.btn.btn-default
          {:role "button"
           :target "_blank"
-          :href (str "http://apibot.co/docs/graphs/" type)}
+          :href (coll/docs-at "graphs/" type)}
          [:span.glyphicon.glyphicon-education]
          " Docs"])
       [:button.btn.btn-default

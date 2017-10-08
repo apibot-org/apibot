@@ -205,3 +205,8 @@
                 coll))
 
 
+(defn docs-at
+  "Temporary fix until docs are moved to clojure code
+  paths will be appended to docs/"
+  [& paths]
+  (apply str "https://apibot-org.github.io/docs/" paths))
