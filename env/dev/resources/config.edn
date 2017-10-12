@@ -5,4 +5,4 @@
 
  :auth0-audience "https://api-dev.apibot.co"
  :aws-lambda-api-url "https://7oovbwevui.execute-api.us-east-1.amazonaws.com/dev/eval"
- :aws-lambda-api-key "NncrTHUsU87k4esb4xTutkgkS7lB2uNvz0R251h0"}
+ :aws-lambda-api-key "placeholder-overriden-by-env"}
